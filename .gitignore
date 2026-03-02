@@ -1,0 +1,62 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Kotlin build artifacts
+.kotlin/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+Thumbs.db
+
+# Kotlin
+*.class
+*.jar
+*.war
+
+# Android
+local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+/captures
+.externalNativeBuild/
+.cxx/
+
+# Firebase
+google-services.json
+GoogleService-Info.plist
+firebase/serviceAccountKey.json
+
+# iOS
+iosApp/Pods/
+iosApp/Podfile.lock
+iosApp/*.xcworkspace
+iosApp/*.xcodeproj/xcuserdata/
+iosApp/*.xcodeproj/project.xcworkspace/xcuserdata/
+DerivedData/
+
+# Secrets
+*.keystore
+*.jks
+razorpay.properties
+
+# Misc
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# Node
+node_modules/
+.next/
+webapp/node_modules/
+webapp/.next/
+

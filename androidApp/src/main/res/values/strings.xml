@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MGB Heights</string>
+    <string name="default_notification_channel_id">mgb_heights_notifications</string>
+
+    <!-- Auth -->
+    <string name="login_title">Welcome to</string>
+    <string name="login_subtitle">MGB Heights</string>
+    <string name="login_description">Enter your phone number to continue</string>
+    <string name="hint_phone_number">Phone Number</string>
+    <string name="btn_send_otp">Send OTP</string>
+    <string name="otp_title">Verify OTP</string>
+    <string name="otp_description">Enter the 6-digit code sent to %s</string>
+    <string name="hint_otp">Enter OTP</string>
+    <string name="btn_verify_otp">Verify</string>
+    <string name="btn_resend_otp">Resend OTP</string>
+    <string name="resend_otp_timer">Resend in %d seconds</string>
+    <string name="phone_prefix">+91</string>
+
+
+    <!-- Onboarding -->
+    <string name="complete_profile">Complete Your Profile</string>
+    <string name="hint_full_name">Full Name</string>
+    <string name="hint_email">Email (Optional)</string>
+    <string name="hint_flat_number">Flat Number</string>
+    <string name="hint_tower_block">Tower / Block</string>
+    <string name="btn_submit_profile">Submit for Approval</string>
+    <string name="awaiting_approval_title">Awaiting Approval</string>
+    <string name="awaiting_approval_desc">Your account is pending admin approval. You\'ll be notified once approved.</string>
+
+    <!-- Navigation -->
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_maintenance">Maintenance</string>
+    <string name="nav_visitors">Visitors</string>
+    <string name="nav_notices">Notices</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_greeting">Hello, %s</string>
+    <string name="dashboard_flat_info">%1$s, %2$s</string>
+    <string name="section_quick_actions">Quick Actions</string>
+    <string name="section_recent_activity">Recent Activity</string>
+    <string name="section_pending_dues">Pending Dues</string>
+    <string name="section_announcements">Announcements</string>
+
+    <!-- Maintenance -->
+    <string name="maintenance_title">Maintenance Bills</string>
+    <string name="bill_amount">₹%s</string>
+    <string name="bill_due_date">Due: %s</string>
+    <string name="btn_pay_now">Pay Now</string>
+    <string name="status_paid">Paid</string>
+    <string name="status_pending">Pending</string>
+    <string name="status_overdue">Overdue</string>
+    <string name="no_bills">No bills found</string>
+
+    <!-- Payments -->
+    <string name="payment_title">Payments</string>
+    <string name="payment_history">Payment History</string>
+    <string name="payment_success">Payment Successful!</string>
+    <string name="payment_failed">Payment Failed</string>
+    <string name="btn_download_receipt">Download Receipt</string>
+    <string name="btn_retry_payment">Retry Payment</string>
+    <string name="receipt_number">Receipt: %s</string>
+
+    <!-- Visitors -->
+    <string name="visitor_title">Visitors</string>
+    <string name="add_visitor">Add Visitor</string>
+    <string name="hint_visitor_name">Visitor Name</string>
+    <string name="hint_visitor_phone">Visitor Phone</string>
+    <string name="hint_purpose">Purpose of Visit</string>
+    <string name="hint_vehicle_number">Vehicle Number (Optional)</string>
+    <string name="btn_capture_photo">Capture Photo</string>
+    <string name="btn_approve">Approve</string>
+    <string name="btn_deny">Deny</string>
+    <string name="btn_check_in">Check In</string>
+    <string name="btn_check_out">Check Out</string>
+    <string name="visitor_pending">Pending Approval</string>
+    <string name="visitor_approved">Approved</string>
+    <string name="visitor_denied">Denied</string>
+    <string name="no_visitors">No visitors found</string>
+    <string name="active_visitors">Active Visitors</string>
+    <string name="visitor_history">Visitor History</string>
+
+    <!-- Notices -->
+    <string name="notice_title">Notices</string>
+    <string name="create_notice">Create Notice</string>
+    <string name="hint_notice_title">Title</string>
+    <string name="hint_notice_body">Notice Content</string>
+    <string name="btn_post_notice">Post Notice</string>
+    <string name="no_notices">No notices found</string>
+    <string name="emergency_notice">🚨 Emergency</string>
+
+    <!-- Complaints -->
+    <string name="complaint_title">Complaints</string>
+    <string name="create_complaint">New Complaint</string>
+    <string name="hint_complaint_title">Subject</string>
+    <string name="hint_complaint_description">Describe the issue</string>
+    <string name="btn_submit_complaint">Submit Complaint</string>
+    <string name="no_complaints">No complaints found</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Profile</string>
+    <string name="btn_edit_profile">Edit Profile</string>
+    <string name="btn_save_profile">Save Changes</string>
+    <string name="btn_logout">Logout</string>
+    <string name="btn_change_photo">Change Photo</string>
+    <string name="my_tenants">My Tenants</string>
+    <string name="emergency_contacts">Emergency Contacts</string>
+
+    <!-- Admin -->
+    <string name="admin_dashboard">Admin Dashboard</string>
+    <string name="user_management">User Management</string>
+    <string name="pending_approvals">Pending Approvals</string>
+    <string name="billing_management">Billing Management</string>
+    <string name="generate_bills">Generate Bills</string>
+    <string name="reports">Reports</string>
+    <string name="society_overview">Society Overview</string>
+
+    <!-- Guard -->
+    <string name="guard_dashboard">Security Dashboard</string>
+    <string name="register_visitor">Register Visitor</string>
+    <string name="entry_exit_log">Entry / Exit Log</string>
+    <string name="shift_status">Shift Status</string>
+    <string name="emergency_alert">Emergency Alert</string>
+
+    <!-- Worker -->
+    <string name="worker_dashboard">Worker Dashboard</string>
+    <string name="assigned_jobs">Assigned Jobs</string>
+    <string name="my_earnings">My Earnings</string>
+    <string name="duty_status">Duty Status</string>
+
+    <!-- Common -->
+    <string name="loading">Loading…</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="error_network">No internet connection</string>
+    <string name="error_timeout">Request timed out</string>
+    <string name="btn_retry">Retry</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_confirm">Confirm</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_delete">Delete</string>
+    <string name="btn_close">Close</string>
+    <string name="no_data">No data available</string>
+    <string name="offline_mode">You\'re offline. Some features may be limited.</string>
+    <string name="select_category">Select Category</string>
+    <string name="select_priority">Select Priority</string>
+    <string name="search">Search</string>
+    <string name="filter">Filter</string>
+    <string name="sort">Sort</string>
+</resources>
+

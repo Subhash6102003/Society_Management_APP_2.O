@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="?android:colorBackground"
+    android:padding="@dimen/spacing_xl">
+
+    <!-- Waiting illustration area -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="160dp"
+        android:layout_height="160dp"
+        android:layout_marginBottom="@dimen/spacing_xl"
+        app:cardCornerRadius="80dp"
+        app:cardElevation="@dimen/card_elevation"
+        app:cardBackgroundColor="@color/primary_container">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_notification"
+            android:contentDescription="Awaiting" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/awaiting_approval_title"
+        android:textSize="@dimen/text_headline"
+        android:textColor="?colorOnBackground"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="center"
+        android:layout_marginBottom="@dimen/spacing_md" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/awaiting_approval_desc"
+        android:textSize="@dimen/text_body"
+        android:textColor="?colorOnSurfaceVariant"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:layout_marginBottom="@dimen/spacing_xl" />
+
+    <!-- Status Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/spacing_lg"
+        app:cardCornerRadius="@dimen/card_corner_radius"
+        app:cardElevation="@dimen/card_elevation">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_md">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="@dimen/spacing_sm">
+
+                <View
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:background="@color/status_pending" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Status: Pending Approval"
+                    android:textSize="@dimen/text_body"
+                    android:textColor="@color/status_pending"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginStart="@dimen/spacing_sm" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvUserInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_label"
+                android:textColor="?colorOnSurfaceVariant" />
+
+            <TextView
+                android:id="@+id/tvRoleInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_label"
+                android:textColor="?colorOnSurfaceVariant"
+                android:layout_marginTop="@dimen/spacing_xs" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Refresh button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCheckStatus"
+        style="@style/Widget.MGBHeights.Button.Outlined"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Check Status"
+        android:layout_marginBottom="@dimen/spacing_md" />
+
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/progressLoading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:indeterminate="true"
+        app:indicatorColor="@color/primary" />
+
+    <!-- Logout -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnLogout"
+        style="@style/Widget.MGBHeights.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_logout"
+        android:textColor="@color/error" />
+
+</LinearLayout>
+

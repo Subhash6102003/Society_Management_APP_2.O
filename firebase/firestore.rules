@@ -1,0 +1,217 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ========================================
+    // Helper Functions
+    // ========================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'ADMIN';
+    }
+
+    function isResident() {
+      return isAuthenticated() && getUserRole() == 'RESIDENT';
+    }
+
+    function isTenant() {
+      return isAuthenticated() && getUserRole() == 'TENANT';
+    }
+
+    function isGuard() {
+      return isAuthenticated() && getUserRole() == 'SECURITY_GUARD';
+    }
+
+    function isWorker() {
+      return isAuthenticated() && getUserRole() == 'WORKER';
+    }
+
+    function isApproved() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isApproved == true;
+    }
+
+    function isNotBlocked() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBlocked != true;
+    }
+
+    function isValidUser() {
+      return isAuthenticated() && isApproved() && isNotBlocked();
+    }
+
+    // ========================================
+    // Users Collection
+    // ========================================
+    match /users/{userId} {
+      // Users can read their own profile; admins can read all
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Users can create their own profile on first login
+      allow create: if isOwner(userId);
+
+      // Users can update their own profile (limited fields); admins can update any
+      allow update: if isOwner(userId) || isAdmin();
+
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+
+    // ========================================
+    // Flats Collection
+    // ========================================
+    match /flats/{flatId} {
+      // Authenticated users can read flats
+      allow read: if isAuthenticated();
+
+      // Only admins can create/update/delete flats
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ========================================
+    // Maintenance Bills Collection
+    // ========================================
+    match /maintenance_bills/{billId} {
+      // Residents can read their own bills; admins can read all
+      allow read: if isValidUser();
+
+      // Only admins can create/update bills
+      allow create, update: if isAdmin();
+
+      // No one can delete bills
+      allow delete: if false;
+    }
+
+    // ========================================
+    // Payments Collection
+    // ========================================
+    match /payments/{paymentId} {
+      // Users can read their own payments; admins can read all
+      allow read: if isValidUser();
+
+      // Authenticated users can create payments (when making a payment)
+      allow create: if isValidUser();
+
+      // Only admins can update payments (manual entries, status updates)
+      allow update: if isAdmin() || (isValidUser() && resource.data.userId == request.auth.uid);
+
+      // No one can delete payments
+      allow delete: if false;
+    }
+
+    // ========================================
+    // Notices Collection
+    // ========================================
+    match /notices/{noticeId} {
+      // All authenticated and approved users can read notices
+      allow read: if isValidUser();
+
+      // Only admins can create notices
+      allow create: if isAdmin();
+
+      // Admins can update; users can update readBy field
+      allow update: if isAdmin() ||
+        (isValidUser() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy']));
+
+      // Only admins can delete notices
+      allow delete: if isAdmin();
+    }
+
+    // ========================================
+    // Complaints Collection
+    // ========================================
+    match /complaints/{complaintId} {
+      // Users can read their own complaints; admins can read all
+      allow read: if isValidUser();
+
+      // Residents can create complaints
+      allow create: if isValidUser() && (isResident() || isTenant());
+
+      // Admins can update any complaint; owner can update own (limited)
+      allow update: if isAdmin() ||
+        (isValidUser() && resource.data.userId == request.auth.uid);
+
+      // Only admins can delete complaints
+      allow delete: if isAdmin();
+    }
+
+    // ========================================
+    // Visitors Collection
+    // ========================================
+    match /visitors/{visitorId} {
+      // Guards, residents, and admins can read visitors
+      allow read: if isValidUser();
+
+      // Guards can create visitor entries
+      allow create: if isValidUser() && (isGuard() || isAdmin());
+
+      // Guards can update (check-in/out); residents can update (approve/deny); admins can update all
+      allow update: if isValidUser() && (isGuard() || isResident() || isAdmin());
+
+      // Only admins can delete visitor records
+      allow delete: if isAdmin();
+    }
+
+    // ========================================
+    // Workers Collection
+    // ========================================
+    match /workers/{workerId} {
+      // All authenticated users can read workers
+      allow read: if isValidUser();
+
+      // Only admins can create/delete workers
+      allow create, delete: if isAdmin();
+
+      // Admins can update any; workers can update their own
+      allow update: if isAdmin() ||
+        (isValidUser() && resource.data.userId == request.auth.uid);
+    }
+
+    // ========================================
+    // Work Orders Collection
+    // ========================================
+    match /work_orders/{orderId} {
+      // Related users and admins can read
+      allow read: if isValidUser();
+
+      // Admins and residents can create work orders
+      allow create: if isValidUser() && (isAdmin() || isResident());
+
+      // Workers can update status; admins can update anything
+      allow update: if isAdmin() ||
+        (isValidUser() && (isWorker() || resource.data.residentId == request.auth.uid));
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // ========================================
+    // Security Logs Collection
+    // ========================================
+    match /security_logs/{logId} {
+      allow read: if isValidUser() && (isAdmin() || isGuard());
+      allow create: if isValidUser() && (isAdmin() || isGuard());
+      allow update, delete: if isAdmin();
+    }
+
+    // ========================================
+    // Audit Logs Collection
+    // ========================================
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+  }
+}
+

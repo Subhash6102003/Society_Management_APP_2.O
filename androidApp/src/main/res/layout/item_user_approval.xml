@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/spacing_sm"
+    app:cardCornerRadius="@dimen/card_corner_radius"
+    app:cardElevation="@dimen/card_elevation">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="@dimen/spacing_md">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivPhoto"
+            android:layout_width="@dimen/avatar_md"
+            android:layout_height="@dimen/avatar_md"
+            android:src="@drawable/ic_profile"
+            android:background="@drawable/bg_icon_circle"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="@dimen/spacing_md">
+
+            <TextView
+                android:id="@+id/tvName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_body"
+                android:textColor="?colorOnSurface"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:id="@+id/tvDetails"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_label"
+                android:textColor="?colorOnSurfaceVariant" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipRole"
+                android:layout_width="wrap_content"
+                android:layout_height="24dp"
+                android:textSize="@dimen/text_overline"
+                app:chipMinHeight="24dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnApprove"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="@string/btn_approve"
+                android:textSize="@dimen/text_caption" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReject"
+                style="@style/Widget.MGBHeights.Button.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Reject"
+                android:textColor="@color/error"
+                android:textSize="@dimen/text_caption" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
+

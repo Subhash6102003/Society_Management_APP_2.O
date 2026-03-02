@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:colorBackground"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="0dp"
+            android:layout_height="?actionBarSize"
+            app:navigationIcon="?homeAsUpIndicator"
+            app:title="@string/add_visitor"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Visitor Photo -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardPhoto"
+            android:layout_width="@dimen/visitor_photo_size"
+            android:layout_height="@dimen/visitor_photo_size"
+            android:layout_marginTop="@dimen/spacing_md"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:strokeWidth="2dp"
+            app:strokeColor="@color/divider"
+            app:layout_constraintTop_toBottomOf="@id/toolbar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/ivVisitorPhoto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="Visitor Photo" />
+
+                <LinearLayout
+                    android:id="@+id/layoutCapturePhoto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:background="?colorSurfaceVariant">
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_xl"
+                        android:layout_height="@dimen/icon_xl"
+                        android:src="@drawable/ic_profile"
+                        android:alpha="0.5" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/btn_capture_photo"
+                        android:textColor="?colorOnSurfaceVariant"
+                        android:textSize="@dimen/text_label" />
+
+                </LinearLayout>
+
+            </FrameLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Form fields -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilName"
+            style="@style/Widget.MGBHeights.TextInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/spacing_md"
+            android:hint="@string/hint_visitor_name"
+            app:layout_constraintTop_toBottomOf="@id/cardPhoto"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPhone"
+            style="@style/Widget.MGBHeights.TextInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/spacing_md"
+            android:hint="@string/hint_visitor_phone"
+            app:layout_constraintTop_toBottomOf="@id/tilName"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPhone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="phone"
+                android:maxLength="10" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPurpose"
+            style="@style/Widget.MGBHeights.TextInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/spacing_md"
+            android:layout_marginTop="@dimen/spacing_sm"
+            android:hint="@string/hint_purpose"
+            app:layout_constraintTop_toBottomOf="@id/tilPhone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPurpose"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Flat selection -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilFlat"
+            style="@style/Widget.MGBHeights.TextInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/spacing_md"
+            android:layout_marginTop="@dimen/spacing_sm"
+            android:hint="Destination Flat"
+            app:endIconMode="dropdown_menu"
+            app:layout_constraintTop_toBottomOf="@id/tilPurpose"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <AutoCompleteTextView
+                android:id="@+id/actFlat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilVehicle"
+            style="@style/Widget.MGBHeights.TextInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/spacing_md"
+            android:layout_marginTop="@dimen/spacing_sm"
+            android:hint="@string/hint_vehicle_number"
+            app:layout_constraintTop_toBottomOf="@id/tilFlat"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etVehicle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapCharacters" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- ID Proof upload -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUploadIdProof"
+            style="@style/Widget.MGBHeights.Button.Outlined"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/spacing_md"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:text="Upload ID Proof"
+            app:icon="@drawable/ic_notification"
+            app:layout_constraintTop_toBottomOf="@id/tilVehicle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Submit -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSubmit"
+            style="@style/Widget.MGBHeights.Button.Primary"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/button_height"
+            android:layout_margin="@dimen/spacing_md"
+            android:text="Register Visitor"
+            app:layout_constraintTop_toBottomOf="@id/btnUploadIdProof"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progressLoading"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>
+

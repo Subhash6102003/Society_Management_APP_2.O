@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/spacing_sm"
+    app:cardCornerRadius="@dimen/card_corner_radius"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/card_padding">
+
+        <ImageView
+            android:id="@+id/ivIcon"
+            android:layout_width="@dimen/icon_xl"
+            android:layout_height="@dimen/icon_xl"
+            android:background="@drawable/bg_icon_circle"
+            android:padding="12dp"
+            android:src="@drawable/ic_maintenance"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/tvDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_md"
+            android:textSize="@dimen/text_body"
+            android:textColor="?colorOnSurface"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintTop_toTopOf="@id/ivIcon"
+            app:layout_constraintStart_toEndOf="@id/ivIcon"
+            app:layout_constraintEnd_toStartOf="@id/tvAmount" />
+
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_md"
+            android:textSize="@dimen/text_caption"
+            android:textColor="?colorOnSurfaceVariant"
+            app:layout_constraintTop_toBottomOf="@id/tvDescription"
+            app:layout_constraintStart_toEndOf="@id/ivIcon"
+            app:layout_constraintEnd_toStartOf="@id/tvAmount" />
+
+        <TextView
+            android:id="@+id/tvReceiptNumber"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_md"
+            android:textSize="@dimen/text_overline"
+            android:textColor="?colorOnSurfaceVariant"
+            app:layout_constraintTop_toBottomOf="@id/tvDate"
+            app:layout_constraintStart_toEndOf="@id/ivIcon"
+            app:layout_constraintEnd_toStartOf="@id/tvAmount" />
+
+        <TextView
+            android:id="@+id/tvAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/text_subtitle"
+            android:fontFamily="sans-serif-medium"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipMinHeight="24dp"
+            android:textSize="10sp"
+            app:layout_constraintTop_toBottomOf="@id/tvAmount"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>
+

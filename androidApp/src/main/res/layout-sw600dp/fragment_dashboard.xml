@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tablet-optimized dashboard layout with two-column design -->
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/swipeRefresh"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_lg">
+
+            <!-- Header Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="@dimen/spacing_lg">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/ivProfilePhoto"
+                    android:layout_width="@dimen/avatar_lg"
+                    android:layout_height="@dimen/avatar_lg"
+                    android:layout_marginEnd="@dimen/spacing_md"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvGreeting"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/text_title"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <TextView
+                        android:id="@+id/tvFlatInfo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/text_body"
+                        android:textColor="?colorOnSurfaceVariant" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnNotifications"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:icon="@drawable/ic_notification" />
+            </LinearLayout>
+
+            <!-- Two Column Layout for Tablet -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:baselineAligned="false">
+
+                <!-- Left Column -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="@dimen/spacing_sm">
+
+                    <!-- Pending Dues Card -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardPendingDues"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_md"
+                        android:visibility="gone"
+                        app:cardCornerRadius="@dimen/card_corner_radius"
+                        app:cardBackgroundColor="@color/primary">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="@dimen/card_padding">
+
+                            <TextView
+                                android:id="@+id/tvDuesLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/section_pending_dues"
+                                android:textColor="@android:color/white"
+                                android:textSize="@dimen/text_label" />
+
+                            <TextView
+                                android:id="@+id/tvDuesAmount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@android:color/white"
+                                android:textSize="32sp"
+                                android:fontFamily="sans-serif-medium" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnPayNow"
+                                style="@style/Widget.Material3.Button.TonalButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_sm"
+                                android:text="@string/btn_pay_now"
+                                android:textAllCaps="false" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Quick Actions -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/section_quick_actions"
+                        android:textSize="@dimen/text_subtitle"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginBottom="@dimen/spacing_sm" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvQuickActions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_md" />
+
+                    <!-- Recent Activity -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/section_recent_activity"
+                        android:textSize="@dimen/text_subtitle"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginBottom="@dimen/spacing_sm" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvRecentActivity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
+                </LinearLayout>
+
+                <!-- Right Column -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="@dimen/spacing_sm">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="@dimen/spacing_sm">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/section_announcements"
+                            android:textSize="@dimen/text_subtitle"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnViewAllNotices"
+                            style="@style/Widget.MGBHeights.Button.Text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="View All" />
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvAnnouncements"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
+
+                    <LinearLayout
+                        android:id="@+id/layoutEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/no_data"
+                            android:textColor="?colorOnSurfaceVariant" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+

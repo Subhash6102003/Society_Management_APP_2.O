@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <!-- Auth Flow -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.mgbheights.android.ui.auth.LoginFragment"
+        android:label="Login">
+        <action
+            android:id="@+id/action_login_to_otp"
+            app:destination="@id/otpVerificationFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_login_to_dashboard"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/otpVerificationFragment"
+        android:name="com.mgbheights.android.ui.auth.OtpVerificationFragment"
+        android:label="Verify OTP">
+        <argument
+            android:name="phoneNumber"
+            app:argType="string" />
+        <argument
+            android:name="verificationId"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_otp_to_dashboard"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_otp_to_onboarding"
+            app:destination="@id/onboardingFragment" />
+    </fragment>
+
+    <!-- Onboarding Flow -->
+    <fragment
+        android:id="@+id/onboardingFragment"
+        android:name="com.mgbheights.android.ui.auth.OnboardingFragment"
+        android:label="Complete Profile">
+        <action
+            android:id="@+id/action_onboarding_to_awaiting"
+            app:destination="@id/awaitingApprovalFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/awaitingApprovalFragment"
+        android:name="com.mgbheights.android.ui.auth.AwaitingApprovalFragment"
+        android:label="Awaiting Approval">
+        <action
+            android:id="@+id/action_awaiting_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_awaiting_to_dashboard"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Main Flow (Bottom Nav destinations) -->
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.mgbheights.android.ui.dashboard.DashboardFragment"
+        android:label="Dashboard">
+        <action
+            android:id="@+id/action_dashboard_to_billDetail"
+            app:destination="@id/billDetailFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_notices"
+            app:destination="@id/noticeListFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_paymentHistory"
+            app:destination="@id/paymentHistoryFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/maintenanceListFragment"
+        android:name="com.mgbheights.android.ui.maintenance.MaintenanceListFragment"
+        android:label="Maintenance">
+        <action
+            android:id="@+id/action_maintenance_to_billDetail"
+            app:destination="@id/billDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/billDetailFragment"
+        android:name="com.mgbheights.android.ui.maintenance.BillDetailFragment"
+        android:label="Bill Details">
+        <argument
+            android:name="billId"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_billDetail_to_payment"
+            app:destination="@id/paymentFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/paymentFragment"
+        android:name="com.mgbheights.android.ui.payment.PaymentFragment"
+        android:label="Payment">
+        <argument
+            android:name="billId"
+            app:argType="string" />
+        <argument
+            android:name="amount"
+            app:argType="float" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/paymentHistoryFragment"
+        android:name="com.mgbheights.android.ui.payment.PaymentHistoryFragment"
+        android:label="Payment History" />
+
+    <fragment
+        android:id="@+id/visitorListFragment"
+        android:name="com.mgbheights.android.ui.visitor.VisitorListFragment"
+        android:label="Visitors">
+        <action
+            android:id="@+id/action_visitorList_to_addVisitor"
+            app:destination="@id/addVisitorFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addVisitorFragment"
+        android:name="com.mgbheights.android.ui.visitor.AddVisitorFragment"
+        android:label="Add Visitor" />
+
+    <fragment
+        android:id="@+id/noticeListFragment"
+        android:name="com.mgbheights.android.ui.notice.NoticeListFragment"
+        android:label="Notices">
+        <action
+            android:id="@+id/action_noticeList_to_noticeDetail"
+            app:destination="@id/noticeDetailFragment" />
+        <action
+            android:id="@+id/action_noticeList_to_createNotice"
+            app:destination="@id/createNoticeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/noticeDetailFragment"
+        android:name="com.mgbheights.android.ui.notice.NoticeDetailFragment"
+        android:label="Notice">
+        <argument
+            android:name="noticeId"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/createNoticeFragment"
+        android:name="com.mgbheights.android.ui.notice.CreateNoticeFragment"
+        android:label="Create Notice" />
+
+    <fragment
+        android:id="@+id/complaintListFragment"
+        android:name="com.mgbheights.android.ui.complaint.ComplaintListFragment"
+        android:label="Complaints">
+        <action
+            android:id="@+id/action_complaintList_to_complaintDetail"
+            app:destination="@id/complaintDetailFragment" />
+        <action
+            android:id="@+id/action_complaintList_to_createComplaint"
+            app:destination="@id/createComplaintFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/complaintDetailFragment"
+        android:name="com.mgbheights.android.ui.complaint.ComplaintDetailFragment"
+        android:label="Complaint Details">
+        <argument
+            android:name="complaintId"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/createComplaintFragment"
+        android:name="com.mgbheights.android.ui.complaint.CreateComplaintFragment"
+        android:label="New Complaint" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.mgbheights.android.ui.profile.ProfileFragment"
+        android:label="Profile">
+        <action
+            android:id="@+id/action_profile_to_paymentHistory"
+            app:destination="@id/paymentHistoryFragment" />
+        <action
+            android:id="@+id/action_profile_to_complaints"
+            app:destination="@id/complaintListFragment" />
+        <action
+            android:id="@+id/action_profile_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+</navigation>
+

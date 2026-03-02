@@ -1,0 +1,89 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isImageType() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isPdfType() {
+      return request.resource.contentType == 'application/pdf';
+    }
+
+    function isUnderSizeLimit(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+
+    // ========================================
+    // Profile Photos
+    // ========================================
+    match /profile_photos/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
+        && request.auth.uid == userId
+        && isImageType()
+        && isUnderSizeLimit(5);
+    }
+
+    // ========================================
+    // Visitor Photos
+    // ========================================
+    match /visitor_photos/{visitorId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
+        && isImageType()
+        && isUnderSizeLimit(5);
+    }
+
+    // ========================================
+    // ID Proofs
+    // ========================================
+    match /id_proofs/{documentId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
+        && (isImageType() || isPdfType())
+        && isUnderSizeLimit(10);
+    }
+
+    // ========================================
+    // Notice Images
+    // ========================================
+    match /notice_images/{noticeId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
+        && isImageType()
+        && isUnderSizeLimit(10);
+    }
+
+    // ========================================
+    // Complaint Images
+    // ========================================
+    match /complaint_images/{complaintId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
+        && isImageType()
+        && isUnderSizeLimit(10);
+    }
+
+    // ========================================
+    // Receipts (PDF)
+    // ========================================
+    match /receipts/{paymentId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
+        && isPdfType()
+        && isUnderSizeLimit(5);
+    }
+
+    // Deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/dashboardFragment"
+        android:icon="@drawable/ic_dashboard"
+        android:title="@string/nav_dashboard" />
+    <item
+        android:id="@+id/maintenanceListFragment"
+        android:icon="@drawable/ic_maintenance"
+        android:title="@string/nav_maintenance" />
+    <item
+        android:id="@+id/visitorListFragment"
+        android:icon="@drawable/ic_visitors"
+        android:title="@string/nav_visitors" />
+    <item
+        android:id="@+id/noticeListFragment"
+        android:icon="@drawable/ic_notices"
+        android:title="@string/nav_notices" />
+    <item
+        android:id="@+id/profileFragment"
+        android:icon="@drawable/ic_profile"
+        android:title="@string/nav_profile" />
+</menu>
+

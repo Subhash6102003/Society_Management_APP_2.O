@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark mode color overrides -->
+
+    <!-- Card colors for dark mode -->
+    <color name="card_unselected_bg">#2D1B18</color>
+    <color name="card_unselected_border">#534341</color>
+    <color name="card_selected_bg">#3D1E14</color>
+
+    <!-- Icon circle background for dark mode -->
+    <color name="icon_circle_bg">#3D2420</color>
+
+    <!-- Divider & shimmer for dark mode -->
+    <color name="divider">#534341</color>
+    <color name="shimmer_base">#2D1B18</color>
+    <color name="shimmer_highlight">#3D2420</color>
+</resources>
+
