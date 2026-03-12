@@ -18,7 +18,8 @@ data class DashboardState(
     val pendingBills: List<MaintenanceBill> = emptyList(),
     val recentNotices: List<Notice> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val needsApproval: Boolean = false   // user is not yet approved — skip Firestore reads
 )
 
 @HiltViewModel
@@ -51,6 +52,13 @@ class DashboardViewModel @Inject constructor(
         if (userResult.isSuccess) {
             val user = userResult.getOrNull()!!
             _state.value = _state.value?.copy(user = user)
+
+            // Fix #7: Do NOT fire any Firestore queries for unapproved users —
+            // the security rules would deny them and the fragment should redirect to awaiting.
+            if (!user.isApproved && user.role != UserRole.ADMIN) {
+                _state.value = _state.value?.copy(isLoading = false, needsApproval = true)
+                return
+            }
 
             // Load bills for this user's flat
             if (user.flatNumber.isNotBlank()) {

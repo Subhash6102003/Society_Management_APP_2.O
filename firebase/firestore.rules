@@ -10,16 +10,34 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function uid() {
+      return request.auth.uid;
+    }
+
     function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+      return isAuthenticated() && uid() == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(uid())).data;
     }
 
     function getUserRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return getUserData().role;
+    }
+
+    // Check if the authenticated user's email is the designated admin email
+    function isAdminByEmail() {
+      return isAuthenticated()
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() == 'admin@mgbheights.com';
     }
 
     function isAdmin() {
-      return isAuthenticated() && getUserRole() == 'ADMIN';
+      return isAuthenticated() && (
+        isAdminByEmail()
+        || getUserRole() == 'ADMIN'
+      );
     }
 
     function isResident() {
@@ -31,23 +49,30 @@ service cloud.firestore {
     }
 
     function isGuard() {
-      return isAuthenticated() && getUserRole() == 'SECURITY_GUARD';
+      return isAuthenticated() && (getUserRole() == 'SECURITY_GUARD' || getUserRole() == 'SECURITY_GUARD_WORKER');
     }
 
     function isWorker() {
-      return isAuthenticated() && getUserRole() == 'WORKER';
+      return isAuthenticated() && (getUserRole() == 'WORKER' || getUserRole() == 'SECURITY_GUARD_WORKER');
     }
 
+    // Admin is ALWAYS considered approved (they are the approver)
     function isApproved() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isApproved == true;
+      return isAuthenticated()
+        && (
+          isAdminByEmail()
+          || (getUserData().isBlocked != true
+              && (getUserData().isApproved == true || getUserRole() == 'ADMIN'))
+        );
     }
 
     function isNotBlocked() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBlocked != true;
+      return isAuthenticated() && getUserData().isBlocked != true;
     }
 
+    // Valid user = authenticated + approved (or admin) + not blocked
     function isValidUser() {
-      return isAuthenticated() && isApproved() && isNotBlocked();
+      return isApproved();
     }
 
     // ========================================
@@ -57,11 +82,27 @@ service cloud.firestore {
       // Users can read their own profile; admins can read all
       allow read: if isOwner(userId) || isAdmin();
 
-      // Users can create their own profile on first login
+      // Users can create their own profile on first sign-up
       allow create: if isOwner(userId);
 
-      // Users can update their own profile (limited fields); admins can update any
-      allow update: if isOwner(userId) || isAdmin();
+      // Update rules:
+      //  - Admin can update any user document
+      //  - Owner can update own document WITH restrictions:
+      //    • During initial profile setup (isProfileComplete == false):
+      //      allow setting role & isApproved (but never isBlocked)
+      //    • After profile is complete:
+      //      block changes to role, isApproved, isBlocked
+      allow update: if isAdmin()
+        || isAdminByEmail()
+        || (isOwner(userId) && (
+            // Initial profile completion — allow role + isApproved, block isBlocked
+            (resource.data.isProfileComplete == false
+             && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isBlocked']))
+            ||
+            // Normal updates — block all protected fields
+            (resource.data.isProfileComplete == true
+             && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'isApproved', 'isBlocked']))
+        ));
 
       // Only admins can delete users
       allow delete: if isAdmin();
@@ -71,10 +112,7 @@ service cloud.firestore {
     // Flats Collection
     // ========================================
     match /flats/{flatId} {
-      // Authenticated users can read flats
       allow read: if isAuthenticated();
-
-      // Only admins can create/update/delete flats
       allow create, update, delete: if isAdmin();
     }
 
@@ -82,13 +120,15 @@ service cloud.firestore {
     // Maintenance Bills Collection
     // ========================================
     match /maintenance_bills/{billId} {
-      // Residents can read their own bills; admins can read all
       allow read: if isValidUser();
-
-      // Only admins can create/update bills
+      // Admin can create or update any bill
       allow create, update: if isAdmin();
-
-      // No one can delete bills
+      // Residents and tenants can update ONLY the payment fields on their OWN bill
+      allow update: if isValidUser()
+        && resource.data.residentId == uid()
+        && request.resource.data.diff(resource.data)
+              .affectedKeys()
+              .hasOnly(['status', 'paymentId', 'paidAt', 'updatedAt']);
       allow delete: if false;
     }
 
@@ -96,16 +136,9 @@ service cloud.firestore {
     // Payments Collection
     // ========================================
     match /payments/{paymentId} {
-      // Users can read their own payments; admins can read all
       allow read: if isValidUser();
-
-      // Authenticated users can create payments (when making a payment)
       allow create: if isValidUser();
-
-      // Only admins can update payments (manual entries, status updates)
-      allow update: if isAdmin() || (isValidUser() && resource.data.userId == request.auth.uid);
-
-      // No one can delete payments
+      allow update: if isAdmin() || (isValidUser() && resource.data.userId == uid());
       allow delete: if false;
     }
 
@@ -113,17 +146,10 @@ service cloud.firestore {
     // Notices Collection
     // ========================================
     match /notices/{noticeId} {
-      // All authenticated and approved users can read notices
       allow read: if isValidUser();
-
-      // Only admins can create notices
       allow create: if isAdmin();
-
-      // Admins can update; users can update readBy field
       allow update: if isAdmin() ||
         (isValidUser() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy']));
-
-      // Only admins can delete notices
       allow delete: if isAdmin();
     }
 
@@ -131,17 +157,10 @@ service cloud.firestore {
     // Complaints Collection
     // ========================================
     match /complaints/{complaintId} {
-      // Users can read their own complaints; admins can read all
       allow read: if isValidUser();
-
-      // Residents can create complaints
       allow create: if isValidUser() && (isResident() || isTenant());
-
-      // Admins can update any complaint; owner can update own (limited)
       allow update: if isAdmin() ||
-        (isValidUser() && resource.data.userId == request.auth.uid);
-
-      // Only admins can delete complaints
+        (isValidUser() && resource.data.userId == uid());
       allow delete: if isAdmin();
     }
 
@@ -149,16 +168,9 @@ service cloud.firestore {
     // Visitors Collection
     // ========================================
     match /visitors/{visitorId} {
-      // Guards, residents, and admins can read visitors
       allow read: if isValidUser();
-
-      // Guards can create visitor entries
-      allow create: if isValidUser() && (isGuard() || isAdmin());
-
-      // Guards can update (check-in/out); residents can update (approve/deny); admins can update all
+      allow create: if isValidUser() && (isGuard() || isResident() || isAdmin());
       allow update: if isValidUser() && (isGuard() || isResident() || isAdmin());
-
-      // Only admins can delete visitor records
       allow delete: if isAdmin();
     }
 
@@ -166,33 +178,49 @@ service cloud.firestore {
     // Workers Collection
     // ========================================
     match /workers/{workerId} {
-      // All authenticated users can read workers
       allow read: if isValidUser();
-
-      // Only admins can create/delete workers
       allow create, delete: if isAdmin();
-
-      // Admins can update any; workers can update their own
       allow update: if isAdmin() ||
-        (isValidUser() && resource.data.userId == request.auth.uid);
+        (isValidUser() && resource.data.userId == uid());
     }
 
     // ========================================
     // Work Orders Collection
     // ========================================
     match /work_orders/{orderId} {
-      // Related users and admins can read
       allow read: if isValidUser();
-
-      // Admins and residents can create work orders
       allow create: if isValidUser() && (isAdmin() || isResident());
-
-      // Workers can update status; admins can update anything
       allow update: if isAdmin() ||
-        (isValidUser() && (isWorker() || resource.data.residentId == request.auth.uid));
-
-      // Only admins can delete
+        (isValidUser() && (isWorker() || resource.data.residentId == uid()));
       allow delete: if isAdmin();
+    }
+
+    // ========================================
+    // Edit Requests Collection
+    // ========================================
+    match /edit_requests/{reqId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == uid());
+      allow create: if isAuthenticated();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ========================================
+    // Chat Rooms Collection
+    // ========================================
+    match /chat_rooms/{roomId} {
+      allow read: if isAdmin() || (isValidUser() && resource.data.members.hasAny([uid()]));
+      allow create: if isValidUser();
+      allow update: if isAdmin() || (isValidUser() && resource.data.members.hasAny([uid()]));
+      allow delete: if isAdmin();
+
+      match /messages/{messageId} {
+        allow read: if isAdmin() || (isValidUser() &&
+          get(/databases/$(database)/documents/chat_rooms/$(roomId)).data.members.hasAny([uid()]));
+        allow create: if isValidUser() &&
+          get(/databases/$(database)/documents/chat_rooms/$(roomId)).data.members.hasAny([uid()]);
+        allow update, delete: if isAdmin();
+      }
     }
 
     // ========================================
@@ -214,4 +242,3 @@ service cloud.firestore {
     }
   }
 }
-

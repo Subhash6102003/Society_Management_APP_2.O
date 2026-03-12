@@ -79,7 +79,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/spacing_md"
-        android:src="@drawable/ic_notification"
+        android:src="@drawable/ic_add"
         android:contentDescription="@string/create_notice"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"

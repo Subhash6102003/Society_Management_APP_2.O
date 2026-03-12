@@ -5,13 +5,19 @@ import com.mgbheights.shared.domain.model.*
 
 // ======================== USER ========================
 
+private fun parseUserRole(role: String): UserRole = try {
+    UserRole.valueOf(role)
+} catch (_: Exception) {
+    UserRole.RESIDENT
+}
+
 fun UserEntity.toDomain(): User = User(
     id = id,
     phoneNumber = phoneNumber,
     name = name,
     email = email,
     profilePhotoUrl = profilePhotoUrl,
-    role = try { UserRole.valueOf(role) } catch (_: Exception) { UserRole.RESIDENT },
+    role = parseUserRole(role),
     flatNumber = flatNumber,
     towerBlock = towerBlock,
     houseNumber = houseNumber,
@@ -49,7 +55,7 @@ fun Map<String, Any?>.toUser(): User = User(
     name = this["name"] as? String ?: "",
     email = this["email"] as? String ?: "",
     profilePhotoUrl = this["profilePhotoUrl"] as? String ?: "",
-    role = try { UserRole.valueOf(this["role"] as? String ?: "RESIDENT") } catch (_: Exception) { UserRole.RESIDENT },
+    role = parseUserRole(this["role"] as? String ?: "RESIDENT"),
     flatNumber = this["flatNumber"] as? String ?: "",
     towerBlock = this["towerBlock"] as? String ?: "",
     houseNumber = this["houseNumber"] as? String ?: "",
@@ -68,6 +74,7 @@ fun User.toFirestoreMap(): Map<String, Any?> = mapOf(
     "name" to name,
     "email" to email,
     "profilePhotoUrl" to profilePhotoUrl,
+    "idProofUrl" to idProofUrl,
     "role" to role.name,
     "flatNumber" to flatNumber,
     "towerBlock" to towerBlock,
@@ -360,5 +367,29 @@ fun Visitor.toFirestoreMap(): Map<String, Any?> = mapOf(
     "entryTime" to entryTime, "exitTime" to exitTime, "approvedAt" to approvedAt,
     "approvedBy" to approvedBy, "denialReason" to denialReason,
     "createdAt" to createdAt, "updatedAt" to updatedAt
+)
+
+// ======================== EDIT REQUEST ========================
+
+@Suppress("UNCHECKED_CAST")
+fun Map<String, Any?>.toEditRequest(): EditRequest = EditRequest(
+    id = this["id"] as? String ?: "",
+    userId = this["userId"] as? String ?: "",
+    userName = this["userName"] as? String ?: "",
+    userRole = this["userRole"] as? String ?: "",
+    requestedChanges = (this["requestedChanges"] as? Map<String, String>) ?: emptyMap(),
+    currentValues = (this["currentValues"] as? Map<String, String>) ?: emptyMap(),
+    status = try { EditRequestStatus.valueOf(this["status"] as? String ?: "PENDING") } catch (_: Exception) { EditRequestStatus.PENDING },
+    adminNote = this["adminNote"] as? String ?: "",
+    createdAt = (this["createdAt"] as? Long) ?: 0L,
+    resolvedAt = (this["resolvedAt"] as? Long) ?: 0L,
+    resolvedBy = this["resolvedBy"] as? String ?: ""
+)
+
+fun EditRequest.toFirestoreMap(): Map<String, Any?> = mapOf(
+    "id" to id, "userId" to userId, "userName" to userName, "userRole" to userRole,
+    "requestedChanges" to requestedChanges, "currentValues" to currentValues,
+    "status" to status.name, "adminNote" to adminNote,
+    "createdAt" to createdAt, "resolvedAt" to resolvedAt, "resolvedBy" to resolvedBy
 )
 

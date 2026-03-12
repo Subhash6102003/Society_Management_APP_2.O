@@ -29,6 +29,8 @@ class DashboardFragment : Fragment() {
     private val viewModel: DashboardViewModel by viewModels()
     private lateinit var noticeAdapter: NoticeAdapter
 
+    private var hasRedirected = false
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentDashboardBinding.inflate(inflater, container, false)
         return binding.root
@@ -36,6 +38,10 @@ class DashboardFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // Fix #2: Do NOT reset hasRedirected here. The flag lives for the lifetime of this
+        // fragment instance. Because all redirect actions use popUpTo+inclusive, the fragment
+        // is destroyed after every redirect — so a new instance (hasRedirected=false) is always
+        // created when the Dashboard destination is re-entered.
         setupRecyclerViews()
         setupSwipeRefresh()
         observeViewModel()
@@ -47,7 +53,7 @@ class DashboardFragment : Fragment() {
 
         // Announcements
         noticeAdapter = NoticeAdapter { notice ->
-            // Navigate to notice detail - would use safe args in production
+            // Navigate to notice detail
         }
         binding.rvAnnouncements.layoutManager = LinearLayoutManager(requireContext())
         binding.rvAnnouncements.adapter = noticeAdapter
@@ -62,34 +68,58 @@ class DashboardFragment : Fragment() {
 
     private fun observeViewModel() {
         viewModel.state.observe(viewLifecycleOwner) { state ->
+            // Fix #3: Guard against null binding — fragment view may be destroyed
+            // while an async state update is still in flight.
+            if (_binding == null) return@observe
+
             binding.swipeRefresh.isRefreshing = state.isLoading
 
-            state.user?.let { user ->
-                binding.tvGreeting.text = getString(R.string.dashboard_greeting, user.name.ifBlank { "Resident" })
-                binding.tvFlatInfo.text = if (user.flatNumber.isNotBlank()) {
-                    getString(R.string.dashboard_flat_info, user.flatNumber, user.towerBlock)
-                } else ""
-
-                // Setup quick actions based on role
-                setupQuickActions(user.role)
+            // Fix #7: User is not yet approved — navigate to awaiting approval screen
+            // immediately without firing any further UI or Firestore work.
+            if (state.needsApproval && !hasRedirected) {
+                if (findNavController().currentDestination?.id == R.id.dashboardFragment) {
+                    hasRedirected = true
+                    findNavController().navigate(R.id.action_dashboard_to_awaiting)
+                }
+                return@observe
             }
 
-            // Pending dues
-            val formatter = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
-            binding.tvDuesAmount.text = formatter.format(state.pendingDues)
-            binding.cardPendingDues.isVisible = state.pendingDues > 0
+            state.user?.let { user ->
+                // Redirect to role-specific dashboards (once per fragment instance)
+                if (!hasRedirected && findNavController().currentDestination?.id == R.id.dashboardFragment) {
+                    val redirectAction = when (user.role) {
+                        UserRole.ADMIN -> R.id.action_dashboard_to_adminDashboard
+                        UserRole.SECURITY_GUARD, UserRole.SECURITY_GUARD_WORKER -> R.id.action_dashboard_to_guardDashboard
+                        UserRole.WORKER -> R.id.action_dashboard_to_workerDashboard
+                        else -> null
+                    }
+                    if (redirectAction != null) {
+                        hasRedirected = true
+                        findNavController().navigate(redirectAction)
+                        return@observe  // Fix #3: Stop ALL further processing after navigation
+                    }
+                }
+                // At this point only RESIDENT and TENANT reach the generic dashboard UI.
+                // If a redirected role somehow ends up here, skip UI updates.
+                if (user.role == UserRole.ADMIN || user.role == UserRole.SECURITY_GUARD ||
+                    user.role == UserRole.SECURITY_GUARD_WORKER || user.role == UserRole.WORKER) return@observe
 
+                // Fix #3: Re-check binding after the role guard (no async gap, but defensive)
+                if (_binding == null) return@observe
+
+                binding.tvGreeting.text = "Hello, ${user.name.ifBlank { "Resident" }}"
+                setupQuickActions(user.role)
+
+                // Update financial summary
+                val formatter = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+                binding.tvDuesAmount.text = formatter.format(state.pendingDues)
+            }
+
+            // Fix #3: Final null-check before touching list-related views
+            if (_binding == null) return@observe
             // Notices
             noticeAdapter.submitList(state.recentNotices)
-            binding.layoutEmpty.isVisible = state.recentNotices.isEmpty() && !state.isLoading
-
-            binding.btnPayNow.setOnClickListener {
-                findNavController().navigate(R.id.maintenanceListFragment)
-            }
-
-            binding.btnViewAllNotices.setOnClickListener {
-                findNavController().navigate(R.id.noticeListFragment)
-            }
+            binding.rvAnnouncements.isVisible = state.recentNotices.isNotEmpty()
         }
     }
 
@@ -125,6 +155,12 @@ class DashboardFragment : Fragment() {
                 QuickActionItem("History", R.drawable.ic_dashboard),
                 QuickActionItem("Duty", R.drawable.ic_profile)
             )
+            UserRole.SECURITY_GUARD_WORKER -> listOf(
+                QuickActionItem("Register", R.drawable.ic_visitors),
+                QuickActionItem("Active", R.drawable.ic_visitors),
+                QuickActionItem("Jobs", R.drawable.ic_dashboard),
+                QuickActionItem("Alert", R.drawable.ic_notices)
+            )
         }
 
         binding.rvQuickActions.adapter = QuickActionAdapter(actions) { action ->
@@ -132,6 +168,8 @@ class DashboardFragment : Fragment() {
                 "Pay", "Bills", "Dues" -> findNavController().navigate(R.id.maintenanceListFragment)
                 "Visitors", "Register", "Active" -> findNavController().navigate(R.id.visitorListFragment)
                 "Notices", "Complaints" -> findNavController().navigate(R.id.noticeListFragment)
+                "Users" -> findNavController().navigate(R.id.adminUserManagementFragment)
+                "Reports" -> findNavController().navigate(R.id.profileFragment)
                 else -> {}
             }
         }

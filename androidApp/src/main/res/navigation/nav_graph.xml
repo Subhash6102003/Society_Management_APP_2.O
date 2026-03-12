@@ -10,37 +10,78 @@
         android:name="com.mgbheights.android.ui.auth.LoginFragment"
         android:label="Login">
         <action
-            android:id="@+id/action_login_to_otp"
-            app:destination="@id/otpVerificationFragment"
+            android:id="@+id/action_login_to_dashboard"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_login_to_roleSelection"
+            app:destination="@id/roleSelectionFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <action
-            android:id="@+id/action_login_to_dashboard"
-            app:destination="@id/dashboardFragment"
+            android:id="@+id/action_login_to_onboarding"
+            app:destination="@id/onboardingFragment" />
+        <action
+            android:id="@+id/action_login_to_awaiting"
+            app:destination="@id/awaitingApprovalFragment"
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_login_to_emailVerification"
+            app:destination="@id/emailVerificationFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_login_to_forgotPassword"
+            app:destination="@id/forgotPasswordFragment" />
     </fragment>
 
+    <!-- Forgot Password -->
     <fragment
-        android:id="@+id/otpVerificationFragment"
-        android:name="com.mgbheights.android.ui.auth.OtpVerificationFragment"
-        android:label="Verify OTP">
-        <argument
-            android:name="phoneNumber"
-            app:argType="string" />
-        <argument
-            android:name="verificationId"
-            app:argType="string" />
+        android:id="@+id/forgotPasswordFragment"
+        android:name="com.mgbheights.android.ui.auth.ForgotPasswordFragment"
+        android:label="Reset Password" />
+
+    <!-- Role Selection -->
+    <fragment
+        android:id="@+id/roleSelectionFragment"
+        android:name="com.mgbheights.android.ui.auth.RoleSelectionFragment"
+        android:label="Select Role">
         <action
-            android:id="@+id/action_otp_to_dashboard"
-            app:destination="@id/dashboardFragment"
+            android:id="@+id/action_roleSelection_to_signUp"
+            app:destination="@id/signUpFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <!-- Sign Up -->
+    <fragment
+        android:id="@+id/signUpFragment"
+        android:name="com.mgbheights.android.ui.auth.SignUpFragment"
+        android:label="Sign Up">
+        <action
+            android:id="@+id/action_signUp_to_awaiting"
+            app:destination="@id/awaitingApprovalFragment"
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
         <action
-            android:id="@+id/action_otp_to_onboarding"
-            app:destination="@id/onboardingFragment" />
+            android:id="@+id/action_signUp_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_signUp_to_dashboard"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_signUp_to_emailVerification"
+            app:destination="@id/emailVerificationFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <!-- Onboarding Flow -->
@@ -52,6 +93,11 @@
             android:id="@+id/action_onboarding_to_awaiting"
             app:destination="@id/awaitingApprovalFragment"
             app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_onboarding_to_dashboard"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/nav_graph"
             app:popUpToInclusive="true" />
     </fragment>
 
@@ -71,7 +117,35 @@
             app:popUpToInclusive="true" />
     </fragment>
 
-    <!-- Main Flow (Bottom Nav destinations) -->
+    <!-- Email Verification -->
+    <fragment
+        android:id="@+id/emailVerificationFragment"
+        android:name="com.mgbheights.android.ui.auth.EmailVerificationFragment"
+        android:label="Verify Email">
+        <action
+            android:id="@+id/action_emailVerification_to_awaiting"
+            app:destination="@id/awaitingApprovalFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_emailVerification_to_dashboard"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_emailVerification_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_emailVerification_to_onboarding"
+            app:destination="@id/onboardingFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- ==================== Main Flow (Bottom Nav destinations) ==================== -->
+
     <fragment
         android:id="@+id/dashboardFragment"
         android:name="com.mgbheights.android.ui.dashboard.DashboardFragment"
@@ -85,8 +159,63 @@
         <action
             android:id="@+id/action_dashboard_to_paymentHistory"
             app:destination="@id/paymentHistoryFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_adminDashboard"
+            app:destination="@id/adminDashboardFragment"
+            app:popUpTo="@id/dashboardFragment"
+            app:popUpToInclusive="true"
+            app:launchSingleTop="true" />
+        <action
+            android:id="@+id/action_dashboard_to_guardDashboard"
+            app:destination="@id/guardDashboardFragment"
+            app:popUpTo="@id/dashboardFragment"
+            app:popUpToInclusive="true"
+            app:launchSingleTop="true" />
+        <action
+            android:id="@+id/action_dashboard_to_workerDashboard"
+            app:destination="@id/workerDashboardFragment"
+            app:popUpTo="@id/dashboardFragment"
+            app:popUpToInclusive="true"
+            app:launchSingleTop="true" />
+        <action
+            android:id="@+id/action_dashboard_to_awaiting"
+            app:destination="@id/awaitingApprovalFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
     </fragment>
 
+    <!-- Admin Dashboard -->
+    <fragment
+        android:id="@+id/adminDashboardFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminDashboardFragment"
+        android:label="Admin Dashboard">
+        <action
+            android:id="@+id/action_admin_to_userManagement"
+            app:destination="@id/adminUserManagementFragment" />
+        <action
+            android:id="@+id/action_admin_to_createNotice"
+            app:destination="@id/createNoticeFragment" />
+    </fragment>
+
+    <!-- Admin User Management -->
+    <fragment
+        android:id="@+id/adminUserManagementFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminUserManagementFragment"
+        android:label="User Management" />
+
+    <!-- Guard Dashboard -->
+    <fragment
+        android:id="@+id/guardDashboardFragment"
+        android:name="com.mgbheights.android.ui.guard.GuardDashboardFragment"
+        android:label="Security Dashboard" />
+
+    <!-- Worker Dashboard -->
+    <fragment
+        android:id="@+id/workerDashboardFragment"
+        android:name="com.mgbheights.android.ui.worker.WorkerDashboardFragment"
+        android:label="Worker Dashboard" />
+
+    <!-- Maintenance -->
     <fragment
         android:id="@+id/maintenanceListFragment"
         android:name="com.mgbheights.android.ui.maintenance.MaintenanceListFragment"
@@ -125,6 +254,7 @@
         android:name="com.mgbheights.android.ui.payment.PaymentHistoryFragment"
         android:label="Payment History" />
 
+    <!-- Visitors -->
     <fragment
         android:id="@+id/visitorListFragment"
         android:name="com.mgbheights.android.ui.visitor.VisitorListFragment"
@@ -139,6 +269,7 @@
         android:name="com.mgbheights.android.ui.visitor.AddVisitorFragment"
         android:label="Add Visitor" />
 
+    <!-- Notices -->
     <fragment
         android:id="@+id/noticeListFragment"
         android:name="com.mgbheights.android.ui.notice.NoticeListFragment"
@@ -163,8 +294,14 @@
     <fragment
         android:id="@+id/createNoticeFragment"
         android:name="com.mgbheights.android.ui.notice.CreateNoticeFragment"
-        android:label="Create Notice" />
+        android:label="Create Notice">
+        <argument
+            android:name="prefillTitle"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
 
+    <!-- Complaints -->
     <fragment
         android:id="@+id/complaintListFragment"
         android:name="com.mgbheights.android.ui.complaint.ComplaintListFragment"
@@ -191,6 +328,7 @@
         android:name="com.mgbheights.android.ui.complaint.CreateComplaintFragment"
         android:label="New Complaint" />
 
+    <!-- Profile -->
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.mgbheights.android.ui.profile.ProfileFragment"
@@ -206,7 +344,16 @@
             app:destination="@id/loginFragment"
             app:popUpTo="@id/nav_graph"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_profile_to_editProfile"
+            app:destination="@id/editProfileFragment" />
     </fragment>
+
+    <!-- Edit Profile -->
+    <fragment
+        android:id="@+id/editProfileFragment"
+        android:name="com.mgbheights.android.ui.profile.EditProfileFragment"
+        android:label="Edit Details" />
 
 </navigation>
 

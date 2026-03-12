@@ -25,6 +25,10 @@ class WorkerViewModel @Inject constructor(
     private val _isDutyOn = MutableLiveData(false)
     val isDutyOn: LiveData<Boolean> = _isDutyOn
 
+    // Fix #5: True when the backend workers document doesn't exist yet for this user
+    private val _workerSetupNeeded = MutableLiveData(false)
+    val workerSetupNeeded: LiveData<Boolean> = _workerSetupNeeded
+
     private var workerId: String = ""
 
     init { loadWorkerData() }
@@ -41,6 +45,9 @@ class WorkerViewModel @Inject constructor(
                     _isDutyOn.value = worker.isDutyOn
                     loadWorkOrders()
                     loadEarnings()
+                } else {
+                    // Fix #5: No worker document found — signal the UI to show a setup message
+                    _workerSetupNeeded.value = true
                 }
             }
         }

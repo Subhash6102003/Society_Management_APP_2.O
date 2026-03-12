@@ -32,7 +32,6 @@ android {
         }
         debug {
             isMinifyEnabled = false
-            applicationIdSuffix = ".debug"
         }
     }
 
@@ -108,7 +107,6 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
-    implementation(libs.firebase.storage)
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.analytics)
 

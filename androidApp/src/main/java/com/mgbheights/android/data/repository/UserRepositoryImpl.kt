@@ -45,6 +45,14 @@ class UserRepositoryImpl @Inject constructor(
         } else Resource.error("User not found")
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
+    override suspend fun getUserByEmail(email: String): Resource<User> = try {
+        val snap = usersRef.whereEqualTo("email", email).limit(1).get().await()
+        if (snap.documents.isNotEmpty()) {
+            val doc = snap.documents[0]
+            Resource.success(doc.data!!.toUser().copy(id = doc.id))
+        } else Resource.error("User not found")
+    } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
+
     override fun observeUser(userId: String): Flow<Resource<User>> = callbackFlow {
         val listener = usersRef.document(userId).addSnapshotListener { snap, error ->
             if (error != null) { trySend(Resource.error(error.message ?: "Error")); return@addSnapshotListener }
@@ -89,6 +97,12 @@ class UserRepositoryImpl @Inject constructor(
         usersRef.document(userId).update("isBlocked", false, "updatedAt", System.currentTimeMillis()).await()
         Resource.success(Unit)
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
+
+    override suspend fun deleteUser(userId: String): Resource<Unit> = try {
+        usersRef.document(userId).delete().await()
+        userDao.getUserById(userId)?.let { userDao.deleteAll() }
+        Resource.success(Unit)
+    } catch (e: Exception) { Resource.error(e.message ?: "Failed to delete user", e) }
 
     override suspend fun getUsersByRole(role: UserRole): Resource<List<User>> = try {
         val snap = usersRef.whereEqualTo("role", role.name).get().await()

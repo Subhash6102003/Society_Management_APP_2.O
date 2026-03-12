@@ -19,10 +19,10 @@ object UseCaseModule {
 
     // Auth
     @Provides @Singleton
-    fun provideLoginWithPhoneUseCase(repo: AuthRepository) = LoginWithPhoneUseCase(repo)
+    fun provideLoginWithEmailUseCase(repo: AuthRepository) = LoginWithEmailUseCase(repo)
 
     @Provides @Singleton
-    fun provideVerifyOtpUseCase(repo: AuthRepository) = VerifyOtpUseCase(repo)
+    fun provideSignUpWithEmailUseCase(repo: AuthRepository) = SignUpWithEmailUseCase(repo)
 
     @Provides @Singleton
     fun provideGetCurrentUserUseCase(repo: AuthRepository) = GetCurrentUserUseCase(repo)
@@ -71,4 +71,3 @@ object UseCaseModule {
     @Provides @Singleton
     fun provideApproveVisitorUseCase(repo: VisitorRepository) = ApproveVisitorUseCase(repo)
 }
-

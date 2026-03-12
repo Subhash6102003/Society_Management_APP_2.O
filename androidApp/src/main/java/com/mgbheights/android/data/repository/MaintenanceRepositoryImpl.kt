@@ -115,14 +115,20 @@ class MaintenanceRepositoryImpl @Inject constructor(
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
     override suspend fun generateMonthlyBills(month: String, baseAmount: Double): Resource<List<MaintenanceBill>> = try {
-        val flatsSnap = firestore.collection(Constants.COLLECTION_FLATS).get().await()
         val bills = mutableListOf<MaintenanceBill>()
         val batch = firestore.batch()
+        val generatedFlats = mutableSetOf<String>() // track flatNumbers to avoid duplicates
+
+        // 1) Query flats collection
+        val flatsSnap = firestore.collection(Constants.COLLECTION_FLATS).get().await()
         for (flatDoc in flatsSnap.documents) {
             val flat = flatDoc.data ?: continue
+            val flatNumber = flat["flatNumber"] as? String ?: ""
+            if (flatNumber.isBlank() || flatNumber in generatedFlats) continue
+            generatedFlats.add(flatNumber)
             val docRef = billsRef.document()
             val bill = MaintenanceBill(
-                id = docRef.id, flatId = flatDoc.id, flatNumber = flat["flatNumber"] as? String ?: "",
+                id = docRef.id, flatId = flatDoc.id, flatNumber = flatNumber,
                 towerBlock = flat["towerBlock"] as? String ?: "", residentId = flat["ownerId"] as? String ?: "",
                 residentName = flat["ownerName"] as? String ?: "", amount = baseAmount, totalAmount = baseAmount,
                 month = month, status = BillStatus.PENDING,
@@ -131,6 +137,30 @@ class MaintenanceRepositoryImpl @Inject constructor(
             batch.set(docRef, bill.toFirestoreMap())
             bills.add(bill)
         }
+
+        // 2) Query users who are RESIDENT or TENANT with a flatNumber (covers cases where flats collection is empty)
+        val usersSnap = firestore.collection(Constants.COLLECTION_USERS).get().await()
+        for (userDoc in usersSnap.documents) {
+            val userData = userDoc.data ?: continue
+            val role = userData["role"] as? String ?: ""
+            if (role != "RESIDENT" && role != "TENANT") continue
+            val flatNumber = userData["flatNumber"] as? String ?: ""
+            if (flatNumber.isBlank() || flatNumber in generatedFlats) continue
+            generatedFlats.add(flatNumber)
+            val docRef = billsRef.document()
+            val bill = MaintenanceBill(
+                id = docRef.id, flatId = userDoc.id, flatNumber = flatNumber,
+                towerBlock = userData["towerBlock"] as? String ?: "",
+                residentId = userDoc.id,
+                residentName = userData["name"] as? String ?: "",
+                amount = baseAmount, totalAmount = baseAmount,
+                month = month, status = BillStatus.PENDING,
+                createdAt = System.currentTimeMillis(), updatedAt = System.currentTimeMillis()
+            )
+            batch.set(docRef, bill.toFirestoreMap())
+            bills.add(bill)
+        }
+
         batch.commit().await()
         billDao.insertBills(bills.map { it.toEntity() })
         Resource.success(bills)

@@ -9,18 +9,14 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.PhoneAuthCredential
-import com.google.firebase.auth.PhoneAuthOptions
-import com.google.firebase.auth.PhoneAuthProvider
 import com.mgbheights.android.R
 import com.mgbheights.android.databinding.FragmentLoginBinding
+import com.mgbheights.shared.domain.model.UserRole
+import com.mgbheights.shared.util.Constants
 import com.mgbheights.shared.util.Resource
 import com.mgbheights.shared.util.Validators
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -30,6 +26,7 @@ class LoginFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: AuthViewModel by activityViewModels()
+    private var hasNavigated = false
 
     @Inject
     lateinit var firebaseAuth: FirebaseAuth
@@ -41,11 +38,22 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        hasNavigated = false
 
-        // Check if already logged in via Firebase — auto-navigate to dashboard
+        // Check if already logged in via Firebase — auto-navigate
         viewModel.isLoggedIn.observe(viewLifecycleOwner) { loggedIn ->
-            if (loggedIn) {
-                findNavController().navigate(R.id.action_login_to_dashboard)
+            if (loggedIn && !hasNavigated) {
+                viewModel.currentUser.value?.let { state ->
+                    if (state is Resource.Success) {
+                        navigateBasedOnUser(state.data)
+                    }
+                }
+            }
+        }
+
+        viewModel.currentUser.observe(viewLifecycleOwner) { state ->
+            if (state is Resource.Success && viewModel.isLoggedIn.value == true && !hasNavigated) {
+                navigateBasedOnUser(state.data)
             }
         }
 
@@ -53,64 +61,83 @@ class LoginFragment : Fragment() {
         observeViewModel()
     }
 
-    private fun setupUI() {
-        binding.etPhone.doAfterTextChanged { text ->
-            binding.btnSendOtp.isEnabled = Validators.isValidPhoneNumber(text?.toString() ?: "")
-            binding.tvError.isVisible = false
+    private fun navigateBasedOnUser(user: com.mgbheights.shared.domain.model.User) {
+        if (hasNavigated) return
+        if (findNavController().currentDestination?.id != R.id.loginFragment) return
+
+        val isAdminEmail = (firebaseAuth.currentUser?.email ?: "").equals(Constants.ADMIN_DEFAULT_EMAIL, ignoreCase = true)
+        val isEmailVerified = firebaseAuth.currentUser?.isEmailVerified == true
+
+        // Admin skips email verification
+        if (!isAdminEmail && !isEmailVerified) {
+            hasNavigated = true
+            viewModel.isFromSignUp = false
+            viewModel.sendEmailVerification()
+            findNavController().navigate(R.id.action_login_to_emailVerification)
+            return
         }
 
-        binding.btnSendOtp.setOnClickListener {
-            val phone = binding.etPhone.text?.toString() ?: ""
-            if (Validators.isValidPhoneNumber(phone)) {
-                sendOtp(phone)
+        hasNavigated = true
+        when {
+            !user.isProfileComplete -> {
+                findNavController().navigate(R.id.action_login_to_onboarding)
+            }
+            !user.isApproved && user.role != UserRole.ADMIN -> {
+                findNavController().navigate(R.id.action_login_to_awaiting)
+            }
+            else -> {
+                findNavController().navigate(R.id.action_login_to_dashboard)
             }
         }
     }
 
-    private fun sendOtp(phone: String) {
-        setLoading(true)
-        viewModel.phoneNumber = phone
+    private fun setupUI() {
+        binding.etEmail.doAfterTextChanged {
+            binding.tvError.isVisible = false
+            updateLoginButtonState()
+        }
+        binding.etPassword.doAfterTextChanged {
+            binding.tvError.isVisible = false
+            updateLoginButtonState()
+        }
 
-        val options = PhoneAuthOptions.newBuilder(firebaseAuth)
-            .setPhoneNumber("+91$phone")
-            .setTimeout(60L, TimeUnit.SECONDS)
-            .setActivity(requireActivity())
-            .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    Timber.d("Auto verification completed")
-                    setLoading(false)
-                    // Auto-sign in with the credential
-                    viewModel.signInWithCredential(credential)
+        binding.btnLogin.setOnClickListener {
+            val email = binding.etEmail.text?.toString()?.trim() ?: ""
+            val password = binding.etPassword.text?.toString() ?: ""
+            if (Validators.isValidEmailRequired(email) && Validators.isValidPassword(password)) {
+                viewModel.loginWithEmail(email, password)
+            } else {
+                if (!Validators.isValidEmailRequired(email)) {
+                    showError("Please enter a valid email address")
+                } else {
+                    showError("Password must be at least 6 characters")
                 }
+            }
+        }
 
-                override fun onVerificationFailed(e: FirebaseException) {
-                    Timber.e(e, "Verification failed")
-                    setLoading(false)
-                    showError(e.message ?: getString(R.string.error_generic))
-                }
+        binding.tvSignUp.setOnClickListener {
+            findNavController().navigate(R.id.action_login_to_roleSelection)
+        }
 
-                override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
-                    Timber.d("Code sent: $verificationId")
-                    setLoading(false)
-                    viewModel.storedVerificationId = verificationId
+        binding.tvForgotPassword.setOnClickListener {
+            findNavController().navigate(R.id.action_login_to_forgotPassword)
+        }
+    }
 
-                    val action = LoginFragmentDirections.actionLoginToOtp(
-                        phoneNumber = phone,
-                        verificationId = verificationId
-                    )
-                    findNavController().navigate(action)
-                }
-            })
-            .build()
-
-        PhoneAuthProvider.verifyPhoneNumber(options)
+    private fun updateLoginButtonState() {
+        val email = binding.etEmail.text?.toString()?.trim() ?: ""
+        val password = binding.etPassword.text?.toString() ?: ""
+        binding.btnLogin.isEnabled = email.isNotBlank() && password.isNotBlank()
     }
 
     private fun observeViewModel() {
-        viewModel.sendOtpState.observe(viewLifecycleOwner) { state ->
+        viewModel.loginState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is Resource.Loading -> setLoading(true)
-                is Resource.Success -> setLoading(false)
+                is Resource.Success -> {
+                    setLoading(false)
+                    // Navigation handled by isLoggedIn / currentUser observer
+                }
                 is Resource.Error -> {
                     setLoading(false)
                     showError(state.message)
@@ -121,8 +148,9 @@ class LoginFragment : Fragment() {
 
     private fun setLoading(loading: Boolean) {
         binding.progressLoading.isVisible = loading
-        binding.btnSendOtp.isEnabled = !loading
-        binding.etPhone.isEnabled = !loading
+        binding.btnLogin.isEnabled = !loading
+        binding.etEmail.isEnabled = !loading
+        binding.etPassword.isEnabled = !loading
     }
 
     private fun showError(message: String) {

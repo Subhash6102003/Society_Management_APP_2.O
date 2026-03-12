@@ -5,6 +5,9 @@ object Constants {
     const val APP_NAME = "MGB Heights"
     const val SOCIETY_NAME = "MGB Heights"
 
+    // Admin
+    const val ADMIN_DEFAULT_EMAIL = "admin@mgbheights.com"
+
     // Firestore Collections
     const val COLLECTION_USERS = "users"
     const val COLLECTION_FLATS = "flats"
@@ -17,6 +20,7 @@ object Constants {
     const val COLLECTION_WORK_ORDERS = "work_orders"
     const val COLLECTION_SECURITY_LOGS = "security_logs"
     const val COLLECTION_AUDIT_LOGS = "audit_logs"
+    const val COLLECTION_EDIT_REQUESTS = "edit_requests"
 
     // Firebase Storage Paths
     const val STORAGE_PROFILE_PHOTOS = "profile_photos"
@@ -43,6 +47,9 @@ object Constants {
     const val LATE_FEE_PERCENTAGE = 0.02 // 2%
     const val GRACE_PERIOD_DAYS = 15
 
+    // Maintenance
+    const val DEFAULT_MONTHLY_AMOUNT = 5000.0 // Default ₹5000/month
+
     // Visitor
     const val VISITOR_APPROVAL_TIMEOUT_MINUTES = 30L
     const val MAX_VISITOR_PHOTOS = 3
@@ -52,7 +59,7 @@ object Constants {
     const val MAX_NAME_LENGTH = 100
     const val PHONE_NUMBER_LENGTH = 10
     const val OTP_LENGTH = 6
+    const val MIN_PASSWORD_LENGTH = 6
     const val MAX_COMPLAINT_DESCRIPTION_LENGTH = 1000
     const val MAX_NOTICE_BODY_LENGTH = 5000
 }
-

@@ -81,8 +81,13 @@ class OnboardingFragment : Fragment() {
                 is Resource.Loading -> setLoading(true)
                 is Resource.Success -> {
                     setLoading(false)
-                    // Navigate to awaiting approval screen
-                    findNavController().navigate(R.id.action_onboarding_to_awaiting)
+                    if (authViewModel.selectedRole == UserRole.ADMIN) {
+                        // Admin is auto-approved, go straight to dashboard
+                        findNavController().navigate(R.id.action_onboarding_to_dashboard)
+                    } else {
+                        // Navigate to awaiting approval screen
+                        findNavController().navigate(R.id.action_onboarding_to_awaiting)
+                    }
                 }
                 is Resource.Error -> {
                     setLoading(false)

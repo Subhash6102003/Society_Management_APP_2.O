@@ -6,7 +6,42 @@
     <!-- Auth -->
     <string name="login_title">Welcome to</string>
     <string name="login_subtitle">MGB Heights</string>
-    <string name="login_description">Enter your phone number to continue</string>
+    <string name="login_description">Enter your email and password to continue</string>
+    <string name="hint_email_address">Email Address</string>
+    <string name="hint_password">Password</string>
+    <string name="btn_login">Login</string>
+    <string name="btn_register">Register</string>
+    <string name="btn_continue">Continue</string>
+    <string name="dont_have_account_sign_up">Don\'t have an account? Sign Up</string>
+    <string name="already_have_account_login">Already have an account? Login</string>
+    <string name="sign_up_title">Create Account</string>
+    <string name="create_account">Create Account</string>
+    <string name="select_your_role">Select your role to get started</string>
+
+    <!-- Roles -->
+    <string name="role_resident">Resident</string>
+    <string name="role_resident_desc">I own or live in a flat at MGB Heights</string>
+    <string name="role_tenant">Tenant</string>
+    <string name="role_tenant_desc">I\'m renting a flat at MGB Heights</string>
+    <string name="role_staff">Security &amp; Maintenance Staff</string>
+    <string name="role_staff_desc">I work as security guard or maintenance worker</string>
+    <string name="role_security_guard">Security Guard</string>
+    <string name="role_security_guard_desc">I work as a security guard at MGB Heights</string>
+    <string name="role_worker">Maintenance Worker</string>
+    <string name="role_worker_desc">I work as a maintenance or housekeeping worker</string>
+
+    <!-- Email Verification -->
+    <string name="verify_email_title">Verify Your Email</string>
+    <string name="verify_email_desc">We\'ve sent a verification link to your email address. Please check your inbox and click the link to verify.</string>
+    <string name="btn_check_verification">I\'ve Verified My Email</string>
+    <string name="btn_resend_email">Resend Verification Email</string>
+    <string name="email_not_verified">Please verify your email before continuing</string>
+    <string name="email_verified_success">Email verified successfully!</string>
+    <string name="verification_email_sent">Verification email sent! Check your inbox.</string>
+    <string name="hint_phone">Phone Number</string>
+    <string name="btn_open_email_app">Open Email App</string>
+
+    <!-- Legacy auth strings (kept for compat) -->
     <string name="hint_phone_number">Phone Number</string>
     <string name="btn_send_otp">Send OTP</string>
     <string name="otp_title">Verify OTP</string>
@@ -17,7 +52,6 @@
     <string name="resend_otp_timer">Resend in %d seconds</string>
     <string name="phone_prefix">+91</string>
 
-
     <!-- Onboarding -->
     <string name="complete_profile">Complete Your Profile</string>
     <string name="hint_full_name">Full Name</string>
@@ -27,6 +61,11 @@
     <string name="btn_submit_profile">Submit for Approval</string>
     <string name="awaiting_approval_title">Awaiting Approval</string>
     <string name="awaiting_approval_desc">Your account is pending admin approval. You\'ll be notified once approved.</string>
+
+    <!-- Edit Details -->
+    <string name="edit_details">Edit Details</string>
+    <string name="edit_details_note">Changes will be submitted for admin approval before being applied.</string>
+    <string name="btn_submit_changes">Submit Changes</string>
 
     <!-- Navigation -->
     <string name="nav_dashboard">Dashboard</string>
@@ -100,7 +139,7 @@
 
     <!-- Profile -->
     <string name="profile_title">Profile</string>
-    <string name="btn_edit_profile">Edit Profile</string>
+    <string name="btn_edit_profile">Edit Details</string>
     <string name="btn_save_profile">Save Changes</string>
     <string name="btn_logout">Logout</string>
     <string name="btn_change_photo">Change Photo</string>
@@ -115,6 +154,7 @@
     <string name="generate_bills">Generate Bills</string>
     <string name="reports">Reports</string>
     <string name="society_overview">Society Overview</string>
+    <string name="edit_requests">Edit Requests</string>
 
     <!-- Guard -->
     <string name="guard_dashboard">Security Dashboard</string>

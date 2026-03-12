@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import androidx.appcompat.app.AppCompatDelegate
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 
@@ -12,6 +13,9 @@ class MgbHeightsApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Force light theme — no dark mode
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         // Timber logging
         if (BuildConfig.DEBUG) {

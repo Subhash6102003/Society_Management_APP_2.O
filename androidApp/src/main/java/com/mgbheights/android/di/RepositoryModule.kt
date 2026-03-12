@@ -47,5 +47,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindWorkerRepository(impl: WorkerRepositoryImpl): WorkerRepository
-}
 
+    @Binds
+    @Singleton
+    abstract fun bindEditRequestRepository(impl: EditRequestRepositoryImpl): EditRequestRepository
+}

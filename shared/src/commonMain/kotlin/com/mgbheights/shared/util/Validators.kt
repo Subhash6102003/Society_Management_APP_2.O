@@ -21,6 +21,16 @@ object Validators {
         return email.matches(Regex(emailRegex))
     }
 
+    fun isValidEmailRequired(email: String): Boolean {
+        if (email.isBlank()) return false
+        val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+        return email.matches(Regex(emailRegex))
+    }
+
+    fun isValidPassword(password: String): Boolean {
+        return password.length >= Constants.MIN_PASSWORD_LENGTH
+    }
+
     fun isValidFlatNumber(flatNumber: String): Boolean {
         return flatNumber.isNotBlank() && flatNumber.length <= 10
     }
@@ -43,4 +53,3 @@ object Validators {
         return vehicleNumber.uppercase().replace(" ", "").replace("-", "").matches(Regex(vehicleRegex))
     }
 }
-

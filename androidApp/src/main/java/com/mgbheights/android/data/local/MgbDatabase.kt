@@ -15,7 +15,7 @@ import com.mgbheights.android.data.local.entity.*
         ComplaintEntity::class,
         VisitorEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class MgbDatabase : RoomDatabase() {

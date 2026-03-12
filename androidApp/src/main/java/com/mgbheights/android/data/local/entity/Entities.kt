@@ -10,6 +10,7 @@ data class UserEntity(
     val name: String = "",
     val email: String = "",
     val profilePhotoUrl: String = "",
+    val idProofUrl: String = "",
     val role: String = "RESIDENT",
     val flatNumber: String = "",
     val towerBlock: String = "",

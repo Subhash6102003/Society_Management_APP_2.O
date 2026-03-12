@@ -24,6 +24,13 @@ class CreateNoticeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.toolbar.setNavigationOnClickListener { findNavController().navigateUp() }
+
+        // Pre-fill title from navigation argument (e.g. Emergency Broadcast)
+        val prefillTitle = arguments?.getString("prefillTitle") ?: ""
+        if (prefillTitle.isNotBlank()) {
+            binding.etTitle.setText(prefillTitle)
+        }
+
         binding.btnPost.setOnClickListener {
             // Validate and create notice
         }

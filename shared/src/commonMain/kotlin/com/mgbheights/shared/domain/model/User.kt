@@ -8,7 +8,8 @@ enum class UserRole {
     RESIDENT,
     TENANT,
     SECURITY_GUARD,
-    WORKER
+    WORKER,
+    SECURITY_GUARD_WORKER
 }
 
 @Serializable
@@ -18,6 +19,7 @@ data class User(
     val name: String = "",
     val email: String = "",
     val profilePhotoUrl: String = "",
+    val idProofUrl: String = "",
     val role: UserRole = UserRole.RESIDENT,
     val flatNumber: String = "",
     val towerBlock: String = "",
@@ -30,4 +32,3 @@ data class User(
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L
 )
-

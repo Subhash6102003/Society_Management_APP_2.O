@@ -35,8 +35,8 @@ hilt = "2.50"
 hilt-navigation = "1.1.0"
 
 # Firebase
-firebase-bom = "32.7.1"
-google-services = "4.4.0"
+firebase-bom = "34.10.0"
+google-services = "4.4.4"
 
 # Third Party
 coil = "2.5.0"
@@ -115,11 +115,11 @@ hilt-androidx-compiler = { module = "androidx.hilt:hilt-compiler", version.ref =
 
 # Firebase
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
-firebase-auth = { module = "com.google.firebase:firebase-auth-ktx" }
-firebase-firestore = { module = "com.google.firebase:firebase-firestore-ktx" }
-firebase-storage = { module = "com.google.firebase:firebase-storage-ktx" }
-firebase-messaging = { module = "com.google.firebase:firebase-messaging-ktx" }
-firebase-analytics = { module = "com.google.firebase:firebase-analytics-ktx" }
+firebase-auth = { module = "com.google.firebase:firebase-auth" }
+firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
+firebase-storage = { module = "com.google.firebase:firebase-storage" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 
 # Third Party
 coil = { module = "io.coil-kt:coil", version.ref = "coil" }

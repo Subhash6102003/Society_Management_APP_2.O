@@ -6,13 +6,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.PhoneAuthCredential
-import com.google.firebase.auth.PhoneAuthProvider
 import com.mgbheights.shared.domain.model.User
 import com.mgbheights.shared.domain.model.UserRole
 import com.mgbheights.shared.domain.usecase.auth.GetCurrentUserUseCase
-import com.mgbheights.shared.domain.usecase.auth.LoginWithPhoneUseCase
-import com.mgbheights.shared.domain.usecase.auth.VerifyOtpUseCase
+import com.mgbheights.shared.domain.usecase.auth.LoginWithEmailUseCase
+import com.mgbheights.shared.domain.usecase.auth.SignUpWithEmailUseCase
+import com.mgbheights.shared.domain.repository.UserRepository
 import com.mgbheights.shared.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -22,17 +21,18 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val application: Application,
-    private val loginWithPhoneUseCase: LoginWithPhoneUseCase,
-    private val verifyOtpUseCase: VerifyOtpUseCase,
+    private val loginWithEmailUseCase: LoginWithEmailUseCase,
+    private val signUpWithEmailUseCase: SignUpWithEmailUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val userRepository: UserRepository,
     private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
 
-    private val _sendOtpState = MutableLiveData<Resource<String>>()
-    val sendOtpState: LiveData<Resource<String>> = _sendOtpState
+    private val _loginState = MutableLiveData<Resource<User>>()
+    val loginState: LiveData<Resource<User>> = _loginState
 
-    private val _verifyOtpState = MutableLiveData<Resource<User>>()
-    val verifyOtpState: LiveData<Resource<User>> = _verifyOtpState
+    private val _signUpState = MutableLiveData<Resource<User>>()
+    val signUpState: LiveData<Resource<User>> = _signUpState
 
     private val _currentUser = MutableLiveData<Resource<User>>()
     val currentUser: LiveData<Resource<User>> = _currentUser
@@ -40,8 +40,21 @@ class AuthViewModel @Inject constructor(
     private val _isLoggedIn = MutableLiveData<Boolean>()
     val isLoggedIn: LiveData<Boolean> = _isLoggedIn
 
-    var storedVerificationId: String = ""
-    var phoneNumber: String = ""
+    // Sign-up flow state
+    var selectedRole: UserRole = UserRole.RESIDENT
+    var signUpEmail: String = ""
+    var signUpPassword: String = ""
+
+    // Sign-up form data (stored for use after email verification)
+    var signUpName: String = ""
+    var signUpPhone: String = ""
+    var signUpFlatNumber: String = ""
+    var signUpTowerBlock: String = ""
+    var isFromSignUp: Boolean = false
+
+    // Photo data (Base64 data URIs stored in Firestore)
+    var signUpProfilePhoto: String = ""
+    var signUpIdProof: String = ""
 
     init {
         checkLoginStatus()
@@ -66,49 +79,78 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun sendOtp(phone: String) {
-        phoneNumber = phone
+    fun loginWithEmail(email: String, password: String) {
         viewModelScope.launch {
-            _sendOtpState.value = Resource.Loading
-            _sendOtpState.value = loginWithPhoneUseCase(phone)
+            _loginState.value = Resource.Loading
+            val result = loginWithEmailUseCase(email, password)
+            _loginState.value = result
+            if (result.isSuccess) {
+                _isLoggedIn.value = true
+                _currentUser.value = result
+            }
+        }
+    }
+
+    fun signUpWithEmail(email: String, password: String) {
+        viewModelScope.launch {
+            _signUpState.value = Resource.Loading
+            val result = signUpWithEmailUseCase(email, password)
+            _signUpState.value = result
+            if (result.isSuccess) {
+                _isLoggedIn.value = true
+                signUpEmail = email
+                signUpPassword = password
+                // Send email verification
+                sendEmailVerification()
+            }
         }
     }
 
     /**
-     * Verify the OTP code entered by the user.
+     * Send a verification email to the current Firebase user.
      */
-    fun verifyOtp(otp: String) {
-        viewModelScope.launch {
-            _verifyOtpState.value = Resource.Loading
-            val credential = PhoneAuthProvider.getCredential(storedVerificationId, otp)
-            signInWithCredential(credential)
-        }
+    fun sendEmailVerification() {
+        val user = firebaseAuth.currentUser ?: return
+        user.sendEmailVerification()
     }
 
     /**
-     * Sign in with a PhoneAuthCredential (from manual OTP or auto-verification).
+     * Check if the current user's email is verified.
+     * Returns true if verified, false otherwise.
      */
-    fun signInWithCredential(credential: PhoneAuthCredential) {
-        viewModelScope.launch {
-            _verifyOtpState.value = Resource.Loading
-            firebaseAuth.signInWithCredential(credential)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        val firebaseUser = task.result?.user
-                        Timber.d("Sign in successful: ${firebaseUser?.uid}")
-                        _isLoggedIn.value = true
+    fun isEmailVerified(): Boolean {
+        return firebaseAuth.currentUser?.isEmailVerified == true
+    }
 
-                        // Fetch or create user profile from Firestore
-                        viewModelScope.launch {
-                            _currentUser.value = getCurrentUserUseCase()
-                        }
-                    } else {
-                        Timber.e(task.exception, "Sign in failed")
-                        _verifyOtpState.value = Resource.error(
-                            task.exception?.message ?: "Verification failed"
-                        )
-                    }
+    fun completeSignUpProfile(name: String, flatNumber: String, towerBlock: String) {
+        viewModelScope.launch {
+            _signUpState.value = Resource.Loading
+            val currentResult = getCurrentUserUseCase()
+            if (currentResult.isSuccess) {
+                val current = currentResult.getOrNull()!!
+                val updated = current.copy(
+                    name = name,
+                    phoneNumber = signUpPhone,
+                    flatNumber = flatNumber,
+                    towerBlock = towerBlock,
+                    houseNumber = flatNumber,
+                    role = selectedRole,
+                    profilePhotoUrl = signUpProfilePhoto,
+                    idProofUrl = signUpIdProof,
+                    isProfileComplete = true,
+                    isApproved = selectedRole == UserRole.ADMIN, // Auto-approve admin; others need admin approval
+                    updatedAt = System.currentTimeMillis()
+                )
+                val updateResult = userRepository.updateUser(updated)
+                _signUpState.value = updateResult
+                if (updateResult.isSuccess) {
+                    _currentUser.value = updateResult
                 }
+            } else {
+                _signUpState.value = Resource.error(
+                    currentResult.errorMessageOrNull() ?: "Failed to load profile"
+                )
+            }
         }
     }
 
@@ -125,7 +167,7 @@ class AuthViewModel @Inject constructor(
     fun signOut() {
         firebaseAuth.signOut()
         _isLoggedIn.value = false
-        _currentUser.value = null
+        _currentUser.value = Resource.error("Signed out")
+        isFromSignUp = false
     }
 }
-
