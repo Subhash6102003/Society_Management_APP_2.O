@@ -82,6 +82,7 @@ class EmailVerificationFragment : Fragment() {
 
         // Reload user to get fresh email verification status
         user.reload().addOnCompleteListener { task ->
+            if (_binding == null) return@addOnCompleteListener
             setLoading(false)
             if (task.isSuccessful) {
                 val refreshedUser = firebaseAuth.currentUser
@@ -121,6 +122,7 @@ class EmailVerificationFragment : Fragment() {
         }
 
         user.sendEmailVerification().addOnCompleteListener { task ->
+            if (_binding == null) return@addOnCompleteListener
             setLoading(false)
             if (task.isSuccessful) {
                 showStatus(getString(R.string.verification_email_sent), isError = false)
@@ -183,19 +185,24 @@ class EmailVerificationFragment : Fragment() {
     }
 
     private fun setLoading(loading: Boolean) {
-        binding.progressLoading.isVisible = loading
-        binding.btnCheckVerification.isEnabled = !loading
+        _binding?.let {
+            it.progressLoading.isVisible = loading
+            it.btnCheckVerification.isEnabled = !loading
+        }
     }
 
     private fun showStatus(message: String, isError: Boolean) {
-        binding.tvStatus.text = message
-        binding.tvStatus.setTextColor(
-            ContextCompat.getColor(
-                requireContext(),
-                if (isError) R.color.error else R.color.primary
+        val currentContext = context ?: return
+        _binding?.let {
+            it.tvStatus.text = message
+            it.tvStatus.setTextColor(
+                ContextCompat.getColor(
+                    currentContext,
+                    if (isError) R.color.error else R.color.primary
+                )
             )
-        )
-        binding.tvStatus.isVisible = true
+            it.tvStatus.isVisible = true
+        }
     }
 
     override fun onDestroyView() {
@@ -203,4 +210,3 @@ class EmailVerificationFragment : Fragment() {
         _binding = null
     }
 }
-
