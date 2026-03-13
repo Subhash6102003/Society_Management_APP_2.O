@@ -135,7 +135,7 @@ class DashboardFragment : Fragment() {
                 QuickActionItem("Pay", R.drawable.ic_maintenance),
                 QuickActionItem("Visitors", R.drawable.ic_visitors),
                 QuickActionItem("Complaints", R.drawable.ic_notices),
-                QuickActionItem("Notices", R.drawable.ic_notices)
+                QuickActionItem("Profile", R.drawable.ic_profile)
             )
             UserRole.TENANT -> listOf(
                 QuickActionItem("Pay", R.drawable.ic_maintenance),
@@ -167,9 +167,10 @@ class DashboardFragment : Fragment() {
             when (action.label) {
                 "Pay", "Bills", "Dues" -> findNavController().navigate(R.id.maintenanceListFragment)
                 "Visitors", "Register", "Active" -> findNavController().navigate(R.id.visitorListFragment)
-                "Notices", "Complaints" -> findNavController().navigate(R.id.noticeListFragment)
+                "Complaints" -> findNavController().navigate(R.id.createComplaintFragment)
+                "Notices" -> findNavController().navigate(R.id.noticeListFragment)
                 "Users" -> findNavController().navigate(R.id.adminUserManagementFragment)
-                "Reports" -> findNavController().navigate(R.id.profileFragment)
+                "Profile", "Reports" -> findNavController().navigate(R.id.profileFragment)
                 else -> {}
             }
         }
@@ -180,4 +181,3 @@ class DashboardFragment : Fragment() {
         _binding = null
     }
 }
-

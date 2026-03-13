@@ -93,6 +93,7 @@ class AdminUserManagementFragment : Fragment() {
             // Navigate to role selection to add new staff
             findNavController().navigate(com.mgbheights.android.R.id.roleSelectionFragment)
         }
+        binding.fabAddUser.visibility = View.GONE
     }
 
     private fun filterUsers() {

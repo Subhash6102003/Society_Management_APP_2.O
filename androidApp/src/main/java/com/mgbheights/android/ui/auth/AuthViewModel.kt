@@ -131,9 +131,9 @@ class AuthViewModel @Inject constructor(
                 val updated = current.copy(
                     name = name,
                     phoneNumber = signUpPhone,
-                    flatNumber = flatNumber,
-                    towerBlock = towerBlock,
-                    houseNumber = flatNumber,
+                    flatNumber = if (selectedRole == UserRole.RESIDENT || selectedRole == UserRole.TENANT) flatNumber else "",
+                    towerBlock = if (selectedRole == UserRole.RESIDENT || selectedRole == UserRole.TENANT) towerBlock else "",
+                    houseNumber = if (selectedRole == UserRole.RESIDENT || selectedRole == UserRole.TENANT) flatNumber else "",
                     role = selectedRole,
                     profilePhotoUrl = signUpProfilePhoto,
                     idProofUrl = signUpIdProof,
