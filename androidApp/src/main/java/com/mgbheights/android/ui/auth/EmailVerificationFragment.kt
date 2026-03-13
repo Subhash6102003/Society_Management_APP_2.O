@@ -209,4 +209,8 @@ class EmailVerificationFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> e99b77b2ba079663f34957d63c3649fc74078423
