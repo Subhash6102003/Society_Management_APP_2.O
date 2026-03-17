@@ -7,6 +7,10 @@ import com.mgbheights.shared.util.Resource
 import kotlinx.coroutines.flow.Flow
 
 class GetComplaintsUseCase(private val complaintRepository: ComplaintRepository) {
+    suspend fun byId(complaintId: String): Resource<Complaint> {
+        return complaintRepository.getComplaintById(complaintId)
+    }
+
     suspend fun byFlat(flatId: String): Resource<List<Complaint>> {
         return complaintRepository.getComplaintsByFlat(flatId)
     }
@@ -35,4 +39,3 @@ class GetComplaintsUseCase(private val complaintRepository: ComplaintRepository)
         return complaintRepository.observeAllComplaints()
     }
 }
-

@@ -60,11 +60,6 @@ class AuthViewModel @Inject constructor(
         checkLoginStatus()
     }
 
-    /**
-     * Check if user is already logged in via Firebase Auth.
-     * Firebase persists auth state automatically — user stays logged in
-     * until they explicitly sign out or the app is uninstalled.
-     */
     private fun checkLoginStatus() {
         viewModelScope.launch {
             val currentFirebaseUser = firebaseAuth.currentUser
@@ -91,33 +86,25 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun signUpWithEmail(email: String, password: String) {
+    fun signUpWithEmail(email: String, password: String, role: UserRole, name: String) {
         viewModelScope.launch {
             _signUpState.value = Resource.Loading
-            val result = signUpWithEmailUseCase(email, password)
+            val result = signUpWithEmailUseCase(email, password, role, name)
             _signUpState.value = result
             if (result.isSuccess) {
                 _isLoggedIn.value = true
                 signUpEmail = email
                 signUpPassword = password
-                // Send email verification
                 sendEmailVerification()
             }
         }
     }
 
-    /**
-     * Send a verification email to the current Firebase user.
-     */
     fun sendEmailVerification() {
         val user = firebaseAuth.currentUser ?: return
         user.sendEmailVerification()
     }
 
-    /**
-     * Check if the current user's email is verified.
-     * Returns true if verified, false otherwise.
-     */
     fun isEmailVerified(): Boolean {
         return firebaseAuth.currentUser?.isEmailVerified == true
     }
@@ -138,7 +125,7 @@ class AuthViewModel @Inject constructor(
                     profilePhotoUrl = signUpProfilePhoto,
                     idProofUrl = signUpIdProof,
                     isProfileComplete = true,
-                    isApproved = selectedRole == UserRole.ADMIN, // Auto-approve admin; others need admin approval
+                    isApproved = selectedRole == UserRole.ADMIN,
                     updatedAt = System.currentTimeMillis()
                 )
                 val updateResult = userRepository.updateUser(updated)
@@ -161,13 +148,12 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Sign out and clear Firebase auth state.
-     */
     fun signOut() {
         firebaseAuth.signOut()
         _isLoggedIn.value = false
         _currentUser.value = Resource.error("Signed out")
         isFromSignUp = false
+        // Reset role to default for next user
+        selectedRole = UserRole.RESIDENT
     }
 }

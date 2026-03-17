@@ -12,7 +12,8 @@ import com.mgbheights.shared.domain.model.User
 class PendingApprovalAdapter(
     private val onApprove: (User) -> Unit,
     private val onReject: (User) -> Unit,
-    private val onDelete: ((User) -> Unit)? = null
+    private val onDelete: ((User) -> Unit)? = null,
+    private val onItemClick: ((User) -> Unit)? = null
 ) : ListAdapter<User, PendingApprovalAdapter.ViewHolder>(UserDiffCallback()) {
 
     inner class ViewHolder(private val binding: ItemUserApprovalBinding) :
@@ -34,8 +35,6 @@ class PendingApprovalAdapter(
             }
             binding.chipRole.text = user.role.name.replace("_", " ")
 
-            // Pending users → Accept / Reject
-            // Approved users → Delete only
             if (user.isApproved) {
                 binding.layoutPendingActions.isVisible = false
                 binding.btnDelete.isVisible = true
@@ -46,6 +45,8 @@ class PendingApprovalAdapter(
                 binding.btnApprove.setOnClickListener { onApprove(user) }
                 binding.btnReject.setOnClickListener { onReject(user) }
             }
+            
+            binding.root.setOnClickListener { onItemClick?.invoke(user) }
         }
     }
 

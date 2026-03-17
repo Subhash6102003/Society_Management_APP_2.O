@@ -23,6 +23,7 @@ data class Payment(
     val isManualEntry: Boolean = false,
     val manualEntryBy: String = "",
     val failureReason: String = "",
+    val paidAt: Long = 0L,
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L
 )
@@ -43,4 +44,3 @@ enum class PaymentStatus {
     FAILED,
     REFUNDED
 }
-

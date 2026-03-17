@@ -7,6 +7,10 @@ import com.mgbheights.shared.util.Resource
 import kotlinx.coroutines.flow.Flow
 
 class GetNoticesUseCase(private val noticeRepository: NoticeRepository) {
+    suspend fun byId(noticeId: String): Resource<Notice> {
+        return noticeRepository.getNoticeById(noticeId)
+    }
+
     suspend fun byRole(role: UserRole): Resource<List<Notice>> {
         return noticeRepository.getNoticesByRole(role)
     }
@@ -39,4 +43,3 @@ class GetNoticesUseCase(private val noticeRepository: NoticeRepository) {
         return noticeRepository.markAsRead(noticeId, userId)
     }
 }
-

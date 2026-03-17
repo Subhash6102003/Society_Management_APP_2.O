@@ -2,7 +2,6 @@ package com.mgbheights.android.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.mgbheights.android.data.local.dao.MaintenanceBillDao
 import com.mgbheights.android.data.mapper.*
 import com.mgbheights.shared.domain.model.BillStatus
 import com.mgbheights.shared.domain.model.MaintenanceBill
@@ -12,15 +11,14 @@ import com.mgbheights.shared.util.Resource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+import java.util.Calendar
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class MaintenanceRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore,
-    private val billDao: MaintenanceBillDao
+    private val firestore: FirebaseFirestore
 ) : MaintenanceRepository {
 
     private val billsRef = firestore.collection(Constants.COLLECTION_MAINTENANCE_BILLS)
@@ -29,12 +27,10 @@ class MaintenanceRepositoryImpl @Inject constructor(
         val doc = billsRef.document(billId).get().await()
         if (doc.exists()) {
             val bill = doc.data!!.toMaintenanceBill().copy(id = doc.id)
-            billDao.insertBill(bill.toEntity())
             Resource.success(bill)
         } else Resource.error("Bill not found")
     } catch (e: Exception) {
-        val cached = billDao.getBillById(billId)
-        if (cached != null) Resource.success(cached.toDomain()) else Resource.error(e.message ?: "Error", e)
+        Resource.error(e.message ?: "Error", e)
     }
 
     override fun observeBill(billId: String): Flow<Resource<MaintenanceBill>> = callbackFlow {
@@ -49,11 +45,9 @@ class MaintenanceRepositoryImpl @Inject constructor(
     override suspend fun getBillsByFlat(flatId: String): Resource<List<MaintenanceBill>> = try {
         val snap = billsRef.whereEqualTo("flatId", flatId).orderBy("createdAt", Query.Direction.DESCENDING).get().await()
         val bills = snap.documents.mapNotNull { it.data?.toMaintenanceBill()?.copy(id = it.id) }
-        billDao.insertBills(bills.map { it.toEntity() })
         Resource.success(bills)
     } catch (e: Exception) {
-        val cached = billDao.getBillsByFlat(flatId)
-        if (cached.isNotEmpty()) Resource.success(cached.map { it.toDomain() }) else Resource.error(e.message ?: "Error", e)
+        Resource.error(e.message ?: "Error", e)
     }
 
     override fun observeBillsByFlat(flatId: String): Flow<Resource<List<MaintenanceBill>>> = callbackFlow {
@@ -71,8 +65,15 @@ class MaintenanceRepositoryImpl @Inject constructor(
         Resource.success(snap.documents.mapNotNull { it.data?.toMaintenanceBill()?.copy(id = it.id) })
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
-    override fun observeBillsByStatus(status: BillStatus): Flow<Resource<List<MaintenanceBill>>> =
-        billDao.observeBillsByStatus(status.name).map { entities -> Resource.success(entities.map { it.toDomain() }) }
+    override fun observeBillsByStatus(status: BillStatus): Flow<Resource<List<MaintenanceBill>>> = callbackFlow {
+        val listener = billsRef.whereEqualTo("status", status.name)
+            .addSnapshotListener { snap, error ->
+                if (error != null) { trySend(Resource.error(error.message ?: "Error")); return@addSnapshotListener }
+                val bills = snap?.documents?.mapNotNull { it.data?.toMaintenanceBill()?.copy(id = it.id) } ?: emptyList()
+                trySend(Resource.success(bills))
+            }
+        awaitClose { listener.remove() }
+    }
 
     override suspend fun getBillsByMonth(month: String): Resource<List<MaintenanceBill>> = try {
         val snap = billsRef.whereEqualTo("month", month).get().await()
@@ -82,34 +83,53 @@ class MaintenanceRepositoryImpl @Inject constructor(
     override suspend fun getAllBills(): Resource<List<MaintenanceBill>> = try {
         val snap = billsRef.orderBy("createdAt", Query.Direction.DESCENDING).get().await()
         val bills = snap.documents.mapNotNull { it.data?.toMaintenanceBill()?.copy(id = it.id) }
-        billDao.insertBills(bills.map { it.toEntity() })
         Resource.success(bills)
     } catch (e: Exception) {
-        val cached = billDao.getAllBills()
-        if (cached.isNotEmpty()) Resource.success(cached.map { it.toDomain() }) else Resource.error(e.message ?: "Error", e)
+        Resource.error(e.message ?: "Error", e)
     }
 
-    override fun observeAllBills(): Flow<Resource<List<MaintenanceBill>>> =
-        billDao.observeAllBills().map { entities -> Resource.success(entities.map { it.toDomain() }) }
+    override fun observeAllBills(): Flow<Resource<List<MaintenanceBill>>> = callbackFlow {
+        val listener = billsRef.orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snap, error ->
+                if (error != null) { trySend(Resource.error(error.message ?: "Error")); return@addSnapshotListener }
+                val bills = snap?.documents?.mapNotNull { it.data?.toMaintenanceBill()?.copy(id = it.id) } ?: emptyList()
+                trySend(Resource.success(bills))
+            }
+        awaitClose { listener.remove() }
+    }
 
     override suspend fun createBill(bill: MaintenanceBill): Resource<MaintenanceBill> = try {
         val docRef = billsRef.document()
-        val newBill = bill.copy(id = docRef.id, createdAt = System.currentTimeMillis(), updatedAt = System.currentTimeMillis())
+        val newBill = bill.copy(
+            id = docRef.id, 
+            createdAt = System.currentTimeMillis(), 
+            updatedAt = System.currentTimeMillis(),
+            dueDate = if (bill.dueDate <= 0) getDefaultDueDate() else bill.dueDate
+        )
         docRef.set(newBill.toFirestoreMap()).await()
-        billDao.insertBill(newBill.toEntity())
         Resource.success(newBill)
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
+
+    private fun getDefaultDueDate(): Long {
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.DAY_OF_MONTH, 10) 
+        return cal.timeInMillis
+    }
 
     override suspend fun updateBill(bill: MaintenanceBill): Resource<MaintenanceBill> = try {
         val updated = bill.copy(updatedAt = System.currentTimeMillis())
         billsRef.document(bill.id).set(updated.toFirestoreMap()).await()
-        billDao.updateBill(updated.toEntity())
         Resource.success(updated)
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
     override suspend fun markBillPaid(billId: String, paymentId: String): Resource<Unit> = try {
         billsRef.document(billId).update(
-            mapOf("status" to BillStatus.PAID.name, "paymentId" to paymentId, "paidAt" to System.currentTimeMillis(), "updatedAt" to System.currentTimeMillis())
+            mapOf(
+                "status" to BillStatus.PAID.name, 
+                "paymentId" to paymentId, 
+                "paidAt" to System.currentTimeMillis(), 
+                "updatedAt" to System.currentTimeMillis()
+            )
         ).await()
         Resource.success(Unit)
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
@@ -117,9 +137,9 @@ class MaintenanceRepositoryImpl @Inject constructor(
     override suspend fun generateMonthlyBills(month: String, baseAmount: Double): Resource<List<MaintenanceBill>> = try {
         val bills = mutableListOf<MaintenanceBill>()
         val batch = firestore.batch()
-        val generatedFlats = mutableSetOf<String>() // track flatNumbers to avoid duplicates
+        val generatedFlats = mutableSetOf<String>()
+        val defaultDueDate = getDefaultDueDate()
 
-        // 1) Query flats collection
         val flatsSnap = firestore.collection(Constants.COLLECTION_FLATS).get().await()
         for (flatDoc in flatsSnap.documents) {
             val flat = flatDoc.data ?: continue
@@ -132,13 +152,13 @@ class MaintenanceRepositoryImpl @Inject constructor(
                 towerBlock = flat["towerBlock"] as? String ?: "", residentId = flat["ownerId"] as? String ?: "",
                 residentName = flat["ownerName"] as? String ?: "", amount = baseAmount, totalAmount = baseAmount,
                 month = month, status = BillStatus.PENDING,
+                dueDate = defaultDueDate,
                 createdAt = System.currentTimeMillis(), updatedAt = System.currentTimeMillis()
             )
             batch.set(docRef, bill.toFirestoreMap())
             bills.add(bill)
         }
 
-        // 2) Query users who are RESIDENT or TENANT with a flatNumber (covers cases where flats collection is empty)
         val usersSnap = firestore.collection(Constants.COLLECTION_USERS).get().await()
         for (userDoc in usersSnap.documents) {
             val userData = userDoc.data ?: continue
@@ -155,6 +175,7 @@ class MaintenanceRepositoryImpl @Inject constructor(
                 residentName = userData["name"] as? String ?: "",
                 amount = baseAmount, totalAmount = baseAmount,
                 month = month, status = BillStatus.PENDING,
+                dueDate = defaultDueDate,
                 createdAt = System.currentTimeMillis(), updatedAt = System.currentTimeMillis()
             )
             batch.set(docRef, bill.toFirestoreMap())
@@ -162,7 +183,6 @@ class MaintenanceRepositoryImpl @Inject constructor(
         }
 
         batch.commit().await()
-        billDao.insertBills(bills.map { it.toEntity() })
         Resource.success(bills)
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
@@ -196,4 +216,3 @@ class MaintenanceRepositoryImpl @Inject constructor(
 
     override suspend fun getLedgerByFlat(flatId: String): Resource<List<MaintenanceBill>> = getBillsByFlat(flatId)
 }
-

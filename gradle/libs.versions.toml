@@ -40,6 +40,8 @@ google-services = "4.4.4"
 
 # Third Party
 coil = "2.5.0"
+glide = "4.16.0"
+circleimageview = "3.1.0"
 razorpay = "1.6.33"
 lottie = "6.3.0"
 timber = "5.0.1"
@@ -122,7 +124,10 @@ firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 
 # Third Party
-coil = { module = "io.coil-kt:coil", version.ref = "coil" }
+coil = { module = "com.github.bumptech.glide:coil", version.ref = "coil" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
+circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
 razorpay = { module = "com.razorpay:checkout", version.ref = "razorpay" }
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
@@ -146,4 +151,3 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigation" }
-

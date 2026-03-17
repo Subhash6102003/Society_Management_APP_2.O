@@ -21,6 +21,9 @@ class NoticeViewModel @Inject constructor(
     private val _notices = MutableLiveData<Resource<List<Notice>>>()
     val notices: LiveData<Resource<List<Notice>>> = _notices
 
+    private val _noticeDetail = MutableLiveData<Resource<Notice>>()
+    val noticeDetail: LiveData<Resource<Notice>> = _noticeDetail
+
     private val _createState = MutableLiveData<Resource<Notice>>()
     val createState: LiveData<Resource<Notice>> = _createState
 
@@ -43,6 +46,13 @@ class NoticeViewModel @Inject constructor(
         }
     }
 
+    fun loadNotice(noticeId: String) {
+        viewModelScope.launch {
+            _noticeDetail.value = Resource.Loading
+            _noticeDetail.value = getNoticesUseCase.byId(noticeId)
+        }
+    }
+
     fun createNotice(notice: Notice) {
         viewModelScope.launch {
             _createState.value = Resource.Loading
@@ -59,4 +69,3 @@ class NoticeViewModel @Inject constructor(
         }
     }
 }
-

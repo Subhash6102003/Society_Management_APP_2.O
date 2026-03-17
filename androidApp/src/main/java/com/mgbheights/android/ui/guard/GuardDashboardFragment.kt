@@ -39,9 +39,14 @@ class GuardDashboardFragment : Fragment() {
 
         binding.btnRegisterVisitor.setOnClickListener {
             try {
-                findNavController().navigate(R.id.addVisitorFragment)
-            } catch (_: Exception) {
-                Toast.makeText(requireContext(), "Visitor registration coming soon", Toast.LENGTH_SHORT).show()
+                findNavController().navigate(R.id.action_guardDashboard_to_addVisitor)
+            } catch (e: Exception) {
+                // Fallback if action is not found or other navigation error
+                try {
+                    findNavController().navigate(R.id.addVisitorFragment)
+                } catch (_: Exception) {
+                    Toast.makeText(requireContext(), "Visitor registration coming soon", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
@@ -96,4 +101,3 @@ class GuardDashboardFragment : Fragment() {
         _binding = null
     }
 }
-

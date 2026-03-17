@@ -1,53 +1,25 @@
 package com.mgbheights.android.data.mapper
 
-import com.mgbheights.android.data.local.entity.*
+import com.google.firebase.Timestamp
 import com.mgbheights.shared.domain.model.*
+
+// Helper to handle both Long and Timestamp from Firestore
+private fun Any?.toLongTime(): Long {
+    return when (this) {
+        is Long -> this
+        is Timestamp -> this.toDate().time
+        is Number -> this.toLong()
+        else -> 0L
+    }
+}
 
 // ======================== USER ========================
 
-private fun parseUserRole(role: String): UserRole = try {
-    UserRole.valueOf(role)
+private fun parseUserRole(role: String?): UserRole = try {
+    UserRole.valueOf(role ?: "RESIDENT")
 } catch (_: Exception) {
     UserRole.RESIDENT
 }
-
-fun UserEntity.toDomain(): User = User(
-    id = id,
-    phoneNumber = phoneNumber,
-    name = name,
-    email = email,
-    profilePhotoUrl = profilePhotoUrl,
-    role = parseUserRole(role),
-    flatNumber = flatNumber,
-    towerBlock = towerBlock,
-    houseNumber = houseNumber,
-    isApproved = isApproved,
-    isBlocked = isBlocked,
-    isProfileComplete = isProfileComplete,
-    isOnboarded = isOnboarded,
-    tenantOf = tenantOf,
-    createdAt = createdAt,
-    updatedAt = updatedAt
-)
-
-fun User.toEntity(): UserEntity = UserEntity(
-    id = id,
-    phoneNumber = phoneNumber,
-    name = name,
-    email = email,
-    profilePhotoUrl = profilePhotoUrl,
-    role = role.name,
-    flatNumber = flatNumber,
-    towerBlock = towerBlock,
-    houseNumber = houseNumber,
-    isApproved = isApproved,
-    isBlocked = isBlocked,
-    isProfileComplete = isProfileComplete,
-    isOnboarded = isOnboarded,
-    tenantOf = tenantOf,
-    createdAt = createdAt,
-    updatedAt = updatedAt
-)
 
 fun Map<String, Any?>.toUser(): User = User(
     id = this["id"] as? String ?: "",
@@ -55,7 +27,8 @@ fun Map<String, Any?>.toUser(): User = User(
     name = this["name"] as? String ?: "",
     email = this["email"] as? String ?: "",
     profilePhotoUrl = this["profilePhotoUrl"] as? String ?: "",
-    role = parseUserRole(this["role"] as? String ?: "RESIDENT"),
+    idProofUrl = this["idProofUrl"] as? String ?: "",
+    role = parseUserRole(this["role"] as? String),
     flatNumber = this["flatNumber"] as? String ?: "",
     towerBlock = this["towerBlock"] as? String ?: "",
     houseNumber = this["houseNumber"] as? String ?: "",
@@ -64,8 +37,8 @@ fun Map<String, Any?>.toUser(): User = User(
     isProfileComplete = this["isProfileComplete"] as? Boolean ?: false,
     isOnboarded = this["isOnboarded"] as? Boolean ?: false,
     tenantOf = this["tenantOf"] as? String ?: "",
-    createdAt = (this["createdAt"] as? Long) ?: 0L,
-    updatedAt = (this["updatedAt"] as? Long) ?: 0L
+    createdAt = this["createdAt"].toLongTime(),
+    updatedAt = this["updatedAt"].toLongTime()
 )
 
 fun User.toFirestoreMap(): Map<String, Any?> = mapOf(
@@ -90,48 +63,6 @@ fun User.toFirestoreMap(): Map<String, Any?> = mapOf(
 
 // ======================== MAINTENANCE BILL ========================
 
-fun MaintenanceBillEntity.toDomain(): MaintenanceBill = MaintenanceBill(
-    id = id,
-    flatId = flatId,
-    flatNumber = flatNumber,
-    towerBlock = towerBlock,
-    residentId = residentId,
-    residentName = residentName,
-    amount = amount,
-    lateFee = lateFee,
-    totalAmount = totalAmount,
-    month = month,
-    year = year,
-    dueDate = dueDate,
-    status = try { BillStatus.valueOf(status) } catch (_: Exception) { BillStatus.PENDING },
-    description = description,
-    paymentId = paymentId,
-    paidAt = paidAt,
-    createdAt = createdAt,
-    updatedAt = updatedAt
-)
-
-fun MaintenanceBill.toEntity(): MaintenanceBillEntity = MaintenanceBillEntity(
-    id = id,
-    flatId = flatId,
-    flatNumber = flatNumber,
-    towerBlock = towerBlock,
-    residentId = residentId,
-    residentName = residentName,
-    amount = amount,
-    lateFee = lateFee,
-    totalAmount = totalAmount,
-    month = month,
-    year = year,
-    dueDate = dueDate,
-    status = status.name,
-    description = description,
-    paymentId = paymentId,
-    paidAt = paidAt,
-    createdAt = createdAt,
-    updatedAt = updatedAt
-)
-
 fun Map<String, Any?>.toMaintenanceBill(): MaintenanceBill = MaintenanceBill(
     id = this["id"] as? String ?: "",
     flatId = this["flatId"] as? String ?: "",
@@ -144,13 +75,13 @@ fun Map<String, Any?>.toMaintenanceBill(): MaintenanceBill = MaintenanceBill(
     totalAmount = (this["totalAmount"] as? Number)?.toDouble() ?: 0.0,
     month = this["month"] as? String ?: "",
     year = (this["year"] as? Number)?.toInt() ?: 0,
-    dueDate = (this["dueDate"] as? Long) ?: 0L,
+    dueDate = this["dueDate"].toLongTime(),
     status = try { BillStatus.valueOf(this["status"] as? String ?: "PENDING") } catch (_: Exception) { BillStatus.PENDING },
     description = this["description"] as? String ?: "",
     paymentId = this["paymentId"] as? String ?: "",
-    paidAt = (this["paidAt"] as? Long) ?: 0L,
-    createdAt = (this["createdAt"] as? Long) ?: 0L,
-    updatedAt = (this["updatedAt"] as? Long) ?: 0L
+    paidAt = this["paidAt"].toLongTime(),
+    createdAt = this["createdAt"].toLongTime(),
+    updatedAt = this["updatedAt"].toLongTime()
 )
 
 fun MaintenanceBill.toFirestoreMap(): Map<String, Any?> = mapOf(
@@ -162,25 +93,6 @@ fun MaintenanceBill.toFirestoreMap(): Map<String, Any?> = mapOf(
 )
 
 // ======================== PAYMENT ========================
-
-fun PaymentEntity.toDomain(): Payment = Payment(
-    id = id, flatId = flatId, flatNumber = flatNumber, towerBlock = towerBlock,
-    userId = userId, userName = userName, billId = billId, amount = amount,
-    type = try { PaymentType.valueOf(type) } catch (_: Exception) { PaymentType.MAINTENANCE },
-    status = try { PaymentStatus.valueOf(status) } catch (_: Exception) { PaymentStatus.PENDING },
-    razorpayOrderId = razorpayOrderId, razorpayPaymentId = razorpayPaymentId,
-    receiptUrl = receiptUrl, receiptNumber = receiptNumber, description = description,
-    isManualEntry = isManualEntry, createdAt = createdAt, updatedAt = updatedAt
-)
-
-fun Payment.toEntity(): PaymentEntity = PaymentEntity(
-    id = id, flatId = flatId, flatNumber = flatNumber, towerBlock = towerBlock,
-    userId = userId, userName = userName, billId = billId, amount = amount,
-    type = type.name, status = status.name, razorpayOrderId = razorpayOrderId,
-    razorpayPaymentId = razorpayPaymentId, receiptUrl = receiptUrl,
-    receiptNumber = receiptNumber, description = description,
-    isManualEntry = isManualEntry, createdAt = createdAt, updatedAt = updatedAt
-)
 
 fun Map<String, Any?>.toPayment(): Payment = Payment(
     id = this["id"] as? String ?: "",
@@ -199,8 +111,9 @@ fun Map<String, Any?>.toPayment(): Payment = Payment(
     receiptNumber = this["receiptNumber"] as? String ?: "",
     description = this["description"] as? String ?: "",
     isManualEntry = this["isManualEntry"] as? Boolean ?: false,
-    createdAt = (this["createdAt"] as? Long) ?: 0L,
-    updatedAt = (this["updatedAt"] as? Long) ?: 0L
+    paidAt = this["paidAt"].toLongTime(),
+    createdAt = this["createdAt"].toLongTime(),
+    updatedAt = this["updatedAt"].toLongTime()
 )
 
 fun Payment.toFirestoreMap(): Map<String, Any?> = mapOf(
@@ -210,24 +123,10 @@ fun Payment.toFirestoreMap(): Map<String, Any?> = mapOf(
     "razorpayPaymentId" to razorpayPaymentId, "razorpaySignature" to razorpaySignature,
     "receiptUrl" to receiptUrl, "receiptNumber" to receiptNumber, "description" to description,
     "isManualEntry" to isManualEntry, "manualEntryBy" to manualEntryBy,
-    "createdAt" to createdAt, "updatedAt" to updatedAt
+    "paidAt" to paidAt, "createdAt" to createdAt, "updatedAt" to updatedAt
 )
 
 // ======================== NOTICE ========================
-
-fun NoticeEntity.toDomain(): Notice = Notice(
-    id = id, title = title, body = body,
-    category = try { NoticeCategory.valueOf(category) } catch (_: Exception) { NoticeCategory.GENERAL },
-    priority = try { NoticePriority.valueOf(priority) } catch (_: Exception) { NoticePriority.NORMAL },
-    imageUrl = imageUrl, createdBy = createdBy, createdByName = createdByName,
-    isEmergency = isEmergency, expiresAt = expiresAt, createdAt = createdAt, updatedAt = updatedAt
-)
-
-fun Notice.toEntity(): NoticeEntity = NoticeEntity(
-    id = id, title = title, body = body, category = category.name, priority = priority.name,
-    imageUrl = imageUrl, createdBy = createdBy, createdByName = createdByName,
-    isEmergency = isEmergency, expiresAt = expiresAt, createdAt = createdAt, updatedAt = updatedAt
-)
 
 fun Map<String, Any?>.toNotice(): Notice = Notice(
     id = this["id"] as? String ?: "",
@@ -242,10 +141,10 @@ fun Map<String, Any?>.toNotice(): Notice = Notice(
     createdBy = this["createdBy"] as? String ?: "",
     createdByName = this["createdByName"] as? String ?: "",
     isEmergency = this["isEmergency"] as? Boolean ?: false,
-    expiresAt = (this["expiresAt"] as? Long) ?: 0L,
+    expiresAt = this["expiresAt"].toLongTime(),
     readBy = (this["readBy"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
-    createdAt = (this["createdAt"] as? Long) ?: 0L,
-    updatedAt = (this["updatedAt"] as? Long) ?: 0L
+    createdAt = this["createdAt"].toLongTime(),
+    updatedAt = this["updatedAt"].toLongTime()
 )
 
 fun Notice.toFirestoreMap(): Map<String, Any?> = mapOf(
@@ -257,24 +156,6 @@ fun Notice.toFirestoreMap(): Map<String, Any?> = mapOf(
 )
 
 // ======================== COMPLAINT ========================
-
-fun ComplaintEntity.toDomain(): Complaint = Complaint(
-    id = id, flatId = flatId, flatNumber = flatNumber, towerBlock = towerBlock,
-    userId = userId, userName = userName, title = title, description = description,
-    category = try { ComplaintCategory.valueOf(category) } catch (_: Exception) { ComplaintCategory.OTHER },
-    status = try { ComplaintStatus.valueOf(status) } catch (_: Exception) { ComplaintStatus.OPEN },
-    priority = try { ComplaintPriority.valueOf(priority) } catch (_: Exception) { ComplaintPriority.MEDIUM },
-    assignedWorkerId = assignedWorkerId, assignedWorkerName = assignedWorkerName,
-    resolution = resolution, resolvedAt = resolvedAt, createdAt = createdAt, updatedAt = updatedAt
-)
-
-fun Complaint.toEntity(): ComplaintEntity = ComplaintEntity(
-    id = id, flatId = flatId, flatNumber = flatNumber, towerBlock = towerBlock,
-    userId = userId, userName = userName, title = title, description = description,
-    category = category.name, status = status.name, priority = priority.name,
-    assignedWorkerId = assignedWorkerId, assignedWorkerName = assignedWorkerName,
-    resolution = resolution, resolvedAt = resolvedAt, createdAt = createdAt, updatedAt = updatedAt
-)
 
 fun Map<String, Any?>.toComplaint(): Complaint = Complaint(
     id = this["id"] as? String ?: "",
@@ -292,9 +173,9 @@ fun Map<String, Any?>.toComplaint(): Complaint = Complaint(
     assignedWorkerId = this["assignedWorkerId"] as? String ?: "",
     assignedWorkerName = this["assignedWorkerName"] as? String ?: "",
     resolution = this["resolution"] as? String ?: "",
-    resolvedAt = (this["resolvedAt"] as? Long) ?: 0L,
-    createdAt = (this["createdAt"] as? Long) ?: 0L,
-    updatedAt = (this["updatedAt"] as? Long) ?: 0L
+    resolvedAt = this["resolvedAt"].toLongTime(),
+    createdAt = this["createdAt"].toLongTime(),
+    updatedAt = this["updatedAt"].toLongTime()
 )
 
 fun Complaint.toFirestoreMap(): Map<String, Any?> = mapOf(
@@ -307,29 +188,6 @@ fun Complaint.toFirestoreMap(): Map<String, Any?> = mapOf(
 )
 
 // ======================== VISITOR ========================
-
-fun VisitorEntity.toDomain(): Visitor = Visitor(
-    id = id, name = name, phoneNumber = phoneNumber, purpose = purpose,
-    flatId = flatId, flatNumber = flatNumber, towerBlock = towerBlock,
-    residentId = residentId, residentName = residentName, guardId = guardId, guardName = guardName,
-    photoUrl = photoUrl, idProofUrl = idProofUrl, vehicleNumber = vehicleNumber,
-    vehicleType = try { VehicleType.valueOf(vehicleType) } catch (_: Exception) { VehicleType.NONE },
-    status = try { VisitorStatus.valueOf(status) } catch (_: Exception) { VisitorStatus.PENDING },
-    isFrequentVisitor = isFrequentVisitor, isBlacklisted = isBlacklisted,
-    entryTime = entryTime, exitTime = exitTime, approvedAt = approvedAt,
-    createdAt = createdAt, updatedAt = updatedAt
-)
-
-fun Visitor.toEntity(): VisitorEntity = VisitorEntity(
-    id = id, name = name, phoneNumber = phoneNumber, purpose = purpose,
-    flatId = flatId, flatNumber = flatNumber, towerBlock = towerBlock,
-    residentId = residentId, residentName = residentName, guardId = guardId, guardName = guardName,
-    photoUrl = photoUrl, idProofUrl = idProofUrl, vehicleNumber = vehicleNumber,
-    vehicleType = vehicleType.name, status = status.name,
-    isFrequentVisitor = isFrequentVisitor, isBlacklisted = isBlacklisted,
-    entryTime = entryTime, exitTime = exitTime, approvedAt = approvedAt,
-    createdAt = createdAt, updatedAt = updatedAt
-)
 
 fun Map<String, Any?>.toVisitor(): Visitor = Visitor(
     id = this["id"] as? String ?: "",
@@ -350,11 +208,11 @@ fun Map<String, Any?>.toVisitor(): Visitor = Visitor(
     status = try { VisitorStatus.valueOf(this["status"] as? String ?: "PENDING") } catch (_: Exception) { VisitorStatus.PENDING },
     isFrequentVisitor = this["isFrequentVisitor"] as? Boolean ?: false,
     isBlacklisted = this["isBlacklisted"] as? Boolean ?: false,
-    entryTime = (this["entryTime"] as? Long) ?: 0L,
-    exitTime = (this["exitTime"] as? Long) ?: 0L,
-    approvedAt = (this["approvedAt"] as? Long) ?: 0L,
-    createdAt = (this["createdAt"] as? Long) ?: 0L,
-    updatedAt = (this["updatedAt"] as? Long) ?: 0L
+    entryTime = this["entryTime"].toLongTime(),
+    exitTime = this["exitTime"].toLongTime(),
+    approvedAt = this["approvedAt"].toLongTime(),
+    createdAt = this["createdAt"].toLongTime(),
+    updatedAt = this["updatedAt"].toLongTime()
 )
 
 fun Visitor.toFirestoreMap(): Map<String, Any?> = mapOf(
@@ -381,8 +239,8 @@ fun Map<String, Any?>.toEditRequest(): EditRequest = EditRequest(
     currentValues = (this["currentValues"] as? Map<String, String>) ?: emptyMap(),
     status = try { EditRequestStatus.valueOf(this["status"] as? String ?: "PENDING") } catch (_: Exception) { EditRequestStatus.PENDING },
     adminNote = this["adminNote"] as? String ?: "",
-    createdAt = (this["createdAt"] as? Long) ?: 0L,
-    resolvedAt = (this["resolvedAt"] as? Long) ?: 0L,
+    createdAt = this["createdAt"].toLongTime(),
+    resolvedAt = this["resolvedAt"].toLongTime(),
     resolvedBy = this["resolvedBy"] as? String ?: ""
 )
 
@@ -392,4 +250,3 @@ fun EditRequest.toFirestoreMap(): Map<String, Any?> = mapOf(
     "status" to status.name, "adminNote" to adminNote,
     "createdAt" to createdAt, "resolvedAt" to resolvedAt, "resolvedBy" to resolvedBy
 )
-

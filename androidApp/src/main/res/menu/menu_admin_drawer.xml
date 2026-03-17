@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/main_group" android:checkableBehavior="single">
+        <item
+            android:id="@+id/adminDashboardFragment"
+            android:icon="@drawable/ic_dashboard"
+            android:title="Dashboard" />
+        <item
+            android:id="@+id/adminResidentsFragment"
+            android:icon="@drawable/ic_profile"
+            android:title="Residents" />
+        <item
+            android:id="@+id/adminTenantsFragment"
+            android:icon="@drawable/ic_profile"
+            android:title="Tenants" />
+        <item
+            android:id="@+id/adminGuardsFragment"
+            android:icon="@drawable/ic_profile"
+            android:title="Guards" />
+        <item
+            android:id="@+id/adminWorkersFragment"
+            android:icon="@drawable/ic_profile"
+            android:title="Workers" />
+        <item
+            android:id="@+id/adminComplaintsFragment"
+            android:icon="@drawable/ic_notices"
+            android:title="Complaints" />
+        <item
+            android:id="@+id/adminNoticesFragment"
+            android:icon="@drawable/ic_notices"
+            android:title="Notices" />
+        <item
+            android:id="@+id/adminVisitorsLogFragment"
+            android:icon="@drawable/ic_visitors"
+            android:title="Visitors Log" />
+        <item
+            android:id="@+id/adminMediaFragment"
+            android:icon="@drawable/ic_notification"
+            android:title="Media" />
+        <item
+            android:id="@+id/adminProfileFragment"
+            android:icon="@drawable/ic_profile"
+            android:title="Profile" />
+    </group>
+    <item android:title="System">
+        <menu>
+            <item
+                android:id="@+id/nav_logout"
+                android:icon="@drawable/ic_profile"
+                android:title="Logout" />
+        </menu>
+    </item>
+</menu>

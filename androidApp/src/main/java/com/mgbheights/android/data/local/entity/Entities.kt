@@ -81,6 +81,7 @@ data class PaymentEntity(
     val receiptNumber: String = "",
     val description: String = "",
     val isManualEntry: Boolean = false,
+    val paidAt: Long = 0L,
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L
 )
@@ -148,4 +149,3 @@ data class VisitorEntity(
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L
 )
-

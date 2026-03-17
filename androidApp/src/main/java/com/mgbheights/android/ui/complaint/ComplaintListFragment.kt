@@ -32,7 +32,8 @@ class ComplaintListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = ComplaintAdapter { complaint ->
-            findNavController().navigate(R.id.action_complaintList_to_complaintDetail)
+            val action = ComplaintListFragmentDirections.actionComplaintListToComplaintDetail(complaint.id)
+            findNavController().navigate(action)
         }
         binding.rvComplaints.layoutManager = LinearLayoutManager(requireContext())
         binding.rvComplaints.adapter = adapter
@@ -73,5 +74,3 @@ class ComplaintListFragment : Fragment() {
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }
 }
-
-

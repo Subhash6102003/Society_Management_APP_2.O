@@ -21,6 +21,9 @@ class ComplaintViewModel @Inject constructor(
     private val _complaints = MutableLiveData<Resource<List<Complaint>>>()
     val complaints: LiveData<Resource<List<Complaint>>> = _complaints
 
+    private val _complaintDetail = MutableLiveData<Resource<Complaint>>()
+    val complaintDetail: LiveData<Resource<Complaint>> = _complaintDetail
+
     private val _createState = MutableLiveData<Resource<Complaint>>()
     val createState: LiveData<Resource<Complaint>> = _createState
 
@@ -49,6 +52,13 @@ class ComplaintViewModel @Inject constructor(
         }
     }
 
+    fun loadComplaint(complaintId: String) {
+        viewModelScope.launch {
+            _complaintDetail.value = Resource.Loading
+            _complaintDetail.value = getComplaintsUseCase.byId(complaintId)
+        }
+    }
+
     fun filterByStatus(status: String) {
         val filtered = if (status == "All") {
             allComplaints
@@ -66,4 +76,3 @@ class ComplaintViewModel @Inject constructor(
         }
     }
 }
-

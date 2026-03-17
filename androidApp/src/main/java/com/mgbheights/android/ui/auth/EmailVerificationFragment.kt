@@ -30,7 +30,11 @@ class EmailVerificationFragment : Fragment() {
     @Inject
     lateinit var firebaseAuth: FirebaseAuth
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentEmailVerificationBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -127,7 +131,10 @@ class EmailVerificationFragment : Fragment() {
             if (task.isSuccessful) {
                 showStatus(getString(R.string.verification_email_sent), isError = false)
             } else {
-                showStatus(task.exception?.message ?: "Failed to send verification email", isError = true)
+                showStatus(
+                    task.exception?.message ?: "Failed to send verification email",
+                    isError = true
+                )
             }
         }
     }
@@ -158,6 +165,7 @@ class EmailVerificationFragment : Fragment() {
                         findNavController().navigate(R.id.action_emailVerification_to_awaiting)
                     }
                 }
+
                 is Resource.Error -> {
                     setLoading(false)
                     showStatus(state.message, isError = true)
@@ -173,9 +181,11 @@ class EmailVerificationFragment : Fragment() {
                     !user.isProfileComplete -> {
                         findNavController().navigate(R.id.action_emailVerification_to_onboarding)
                     }
+
                     !user.isApproved && user.role != UserRole.ADMIN -> {
                         findNavController().navigate(R.id.action_emailVerification_to_awaiting)
                     }
+
                     else -> {
                         findNavController().navigate(R.id.action_emailVerification_to_dashboard)
                     }
@@ -209,8 +219,4 @@ class EmailVerificationFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> e99b77b2ba079663f34957d63c3649fc74078423

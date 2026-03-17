@@ -9,15 +9,12 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.mgbheights.android.R
 import com.mgbheights.android.databinding.FragmentBillDetailBinding
 import com.mgbheights.shared.domain.model.BillStatus
 import com.mgbheights.shared.domain.model.MaintenanceBill
-import com.mgbheights.shared.domain.model.UserRole
 import com.mgbheights.shared.domain.repository.MaintenanceRepository
-import com.mgbheights.shared.domain.usecase.auth.GetCurrentUserUseCase
 import com.mgbheights.shared.util.Resource
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +30,12 @@ class BillDetailFragment : Fragment() {
 
     private var _binding: FragmentBillDetailBinding? = null
     private val binding get() = _binding!!
-    private val args: BillDetailFragmentArgs by navArgs()
+    
+    // Use standard lazy initialization for billId to avoid SafeArgs generation issues
+    private val billId: String by lazy {
+        arguments?.getString("billId") ?: ""
+    }
+    
     private val viewModel: BillDetailViewModel by viewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -45,11 +47,17 @@ class BillDetailFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.toolbar.setNavigationOnClickListener { findNavController().navigateUp() }
 
-        viewModel.loadBill(args.billId)
+        if (billId.isBlank()) {
+            Toast.makeText(requireContext(), "Invalid bill ID", Toast.LENGTH_SHORT).show()
+            findNavController().navigateUp()
+            return
+        }
+
+        viewModel.loadBill(billId)
 
         viewModel.bill.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is Resource.Loading -> { /* show loading */ }
+                is Resource.Loading -> { /* show loading if needed */ }
                 is Resource.Success -> displayBill(state.data)
                 is Resource.Error -> {
                     Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
@@ -62,7 +70,7 @@ class BillDetailFragment : Fragment() {
                 is Resource.Loading -> binding.btnPay.isEnabled = false
                 is Resource.Success -> {
                     Toast.makeText(requireContext(), "Bill marked as paid!", Toast.LENGTH_SHORT).show()
-                    viewModel.loadBill(args.billId) // Refresh
+                    viewModel.loadBill(billId) // Refresh
                 }
                 is Resource.Error -> {
                     binding.btnPay.isEnabled = true
@@ -77,7 +85,12 @@ class BillDetailFragment : Fragment() {
         val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
 
         binding.tvTotalAmount.text = formatter.format(bill.totalAmount)
-        binding.tvDueDate.text = if (bill.dueDate > 0) "Due: ${dateFormat.format(Date(bill.dueDate))}" else "Month: ${bill.month}"
+        binding.tvDueDate.text = if (bill.dueDate > 0) {
+            getString(R.string.bill_due_date, dateFormat.format(Date(bill.dueDate)))
+        } else {
+            "Month: ${bill.month}"
+        }
+        
         binding.tvFlatNumber.text = "Flat: ${bill.flatNumber} ${bill.towerBlock}"
         binding.tvResidentName.text = bill.residentName.ifBlank { "Resident" }
         binding.tvMonth.text = "Bill for: ${bill.month}"
@@ -85,9 +98,9 @@ class BillDetailFragment : Fragment() {
         // Status chip
         binding.chipStatus.text = bill.status.name
         val statusColor = when (bill.status) {
-            BillStatus.PAID -> R.color.primary
-            BillStatus.OVERDUE -> R.color.error
-            BillStatus.PENDING -> R.color.status_warning
+            BillStatus.PAID -> R.color.status_success
+            BillStatus.OVERDUE -> R.color.status_overdue
+            BillStatus.PENDING -> R.color.status_pending
             else -> R.color.outline
         }
         binding.chipStatus.setChipBackgroundColorResource(statusColor)
@@ -96,12 +109,13 @@ class BillDetailFragment : Fragment() {
         if (bill.lateFee > 0) {
             binding.layoutLateFee.isVisible = true
             binding.tvLateFee.text = formatter.format(bill.lateFee)
+        } else {
+            binding.layoutLateFee.isVisible = false
         }
 
-        // Show/hide pay button based on status and role
+        // Show/hide pay button based on status
         val isPending = bill.status == BillStatus.PENDING || bill.status == BillStatus.OVERDUE
         binding.btnPay.isVisible = isPending
-        binding.btnPay.text = if (isPending) "Mark as Paid" else "Paid"
         binding.btnDownloadReceipt.isVisible = bill.status == BillStatus.PAID
 
         binding.btnPay.setOnClickListener {
@@ -116,13 +130,15 @@ class BillDetailFragment : Fragment() {
         }
     }
 
-    override fun onDestroyView() { super.onDestroyView(); _binding = null }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }
 
 @HiltViewModel
 class BillDetailViewModel @Inject constructor(
-    private val maintenanceRepository: MaintenanceRepository,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase
+    private val maintenanceRepository: MaintenanceRepository
 ) : ViewModel() {
 
     private val _bill = MutableLiveData<Resource<MaintenanceBill>>()

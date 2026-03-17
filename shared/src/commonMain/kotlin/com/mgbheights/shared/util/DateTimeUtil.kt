@@ -7,6 +7,7 @@ object DateTimeUtil {
     fun now(): Long = Clock.System.now().toEpochMilliseconds()
 
     fun formatDate(timestamp: Long): String {
+        if (timestamp <= 0) return "Date not available"
         val instant = Instant.fromEpochMilliseconds(timestamp)
         val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
         return "${localDateTime.dayOfMonth.toString().padStart(2, '0')}/" +
@@ -15,6 +16,7 @@ object DateTimeUtil {
     }
 
     fun formatTime(timestamp: Long): String {
+        if (timestamp <= 0) return "--:--"
         val instant = Instant.fromEpochMilliseconds(timestamp)
         val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
         val hour = localDateTime.hour
@@ -25,10 +27,12 @@ object DateTimeUtil {
     }
 
     fun formatDateTime(timestamp: Long): String {
+        if (timestamp <= 0) return "Not available"
         return "${formatDate(timestamp)} ${formatTime(timestamp)}"
     }
 
     fun formatMonthYear(timestamp: Long): String {
+        if (timestamp <= 0) return "N/A"
         val instant = Instant.fromEpochMilliseconds(timestamp)
         val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
         val months = listOf(
@@ -44,6 +48,7 @@ object DateTimeUtil {
     }
 
     fun isOverdue(dueDate: Long): Boolean {
+        if (dueDate <= 0) return false
         return Clock.System.now().toEpochMilliseconds() > dueDate
     }
 
@@ -56,6 +61,7 @@ object DateTimeUtil {
     }
 
     fun getRelativeTime(timestamp: Long): String {
+        if (timestamp <= 0) return ""
         val now = Clock.System.now().toEpochMilliseconds()
         val diff = now - timestamp
         val seconds = diff / 1000
@@ -74,4 +80,3 @@ object DateTimeUtil {
         }
     }
 }
-

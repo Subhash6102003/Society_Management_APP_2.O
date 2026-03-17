@@ -1,7 +1,6 @@
 package com.mgbheights.android.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.mgbheights.android.data.local.dao.UserDao
 import com.mgbheights.android.data.mapper.*
 import com.mgbheights.shared.domain.model.User
 import com.mgbheights.shared.domain.model.UserRole
@@ -11,15 +10,13 @@ import com.mgbheights.shared.util.Resource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class UserRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore,
-    private val userDao: UserDao
+    private val firestore: FirebaseFirestore
 ) : UserRepository {
 
     private val usersRef = firestore.collection(Constants.COLLECTION_USERS)
@@ -28,13 +25,10 @@ class UserRepositoryImpl @Inject constructor(
         val doc = usersRef.document(userId).get().await()
         if (doc.exists()) {
             val user = doc.data!!.toUser().copy(id = doc.id)
-            userDao.insertUser(user.toEntity())
             Resource.success(user)
         } else Resource.error("User not found")
     } catch (e: Exception) {
-        val cached = userDao.getUserById(userId)
-        if (cached != null) Resource.success(cached.toDomain())
-        else Resource.error(e.message ?: "Failed to fetch user", e)
+        Resource.error(e.message ?: "Failed to fetch user", e)
     }
 
     override suspend fun getUserByPhone(phoneNumber: String): Resource<User> = try {
@@ -67,14 +61,12 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun createUser(user: User): Resource<User> = try {
         val data = user.toFirestoreMap()
         usersRef.document(user.id).set(data).await()
-        userDao.insertUser(user.toEntity())
         Resource.success(user)
     } catch (e: Exception) { Resource.error(e.message ?: "Failed to create user", e) }
 
     override suspend fun updateUser(user: User): Resource<User> = try {
         val updated = user.copy(updatedAt = System.currentTimeMillis())
         usersRef.document(user.id).set(updated.toFirestoreMap()).await()
-        userDao.updateUser(updated.toEntity())
         Resource.success(updated)
     } catch (e: Exception) { Resource.error(e.message ?: "Failed to update user", e) }
 
@@ -100,19 +92,15 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun deleteUser(userId: String): Resource<Unit> = try {
         usersRef.document(userId).delete().await()
-        userDao.getUserById(userId)?.let { userDao.deleteAll() }
         Resource.success(Unit)
     } catch (e: Exception) { Resource.error(e.message ?: "Failed to delete user", e) }
 
     override suspend fun getUsersByRole(role: UserRole): Resource<List<User>> = try {
         val snap = usersRef.whereEqualTo("role", role.name).get().await()
         val users = snap.documents.mapNotNull { it.data?.toUser()?.copy(id = it.id) }
-        userDao.insertUsers(users.map { it.toEntity() })
         Resource.success(users)
     } catch (e: Exception) {
-        val cached = userDao.getUsersByRole(role.name)
-        if (cached.isNotEmpty()) Resource.success(cached.map { it.toDomain() })
-        else Resource.error(e.message ?: "Error", e)
+        Resource.error(e.message ?: "Error", e)
     }
 
     override fun observeUsersByRole(role: UserRole): Flow<Resource<List<User>>> = callbackFlow {
@@ -146,12 +134,9 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun getAllUsers(): Resource<List<User>> = try {
         val snap = usersRef.get().await()
         val users = snap.documents.mapNotNull { it.data?.toUser()?.copy(id = it.id) }
-        userDao.insertUsers(users.map { it.toEntity() })
         Resource.success(users)
     } catch (e: Exception) {
-        val cached = userDao.getAllUsers()
-        if (cached.isNotEmpty()) Resource.success(cached.map { it.toDomain() })
-        else Resource.error(e.message ?: "Error", e)
+        Resource.error(e.message ?: "Error", e)
     }
 
     override fun observeAllUsers(): Flow<Resource<List<User>>> = callbackFlow {
@@ -163,4 +148,3 @@ class UserRepositoryImpl @Inject constructor(
         awaitClose { listener.remove() }
     }
 }
-

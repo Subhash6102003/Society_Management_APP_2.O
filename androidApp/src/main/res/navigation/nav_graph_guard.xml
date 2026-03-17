@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph_guard"
+    app:startDestination="@id/guardHomeFragment">
+
+    <fragment
+        android:id="@+id/guardHomeFragment"
+        android:name="com.mgbheights.android.ui.guard.GuardHomeFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_guard_home">
+        <action
+            android:id="@+id/action_guardHome_to_guardVisitorCheckIn"
+            app:destination="@id/guardVisitorCheckInFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/guardVisitorCheckInFragment"
+        android:name="com.mgbheights.android.ui.guard.GuardVisitorCheckInFragment"
+        android:label="Visitor Check-in"
+        tools:layout="@layout/fragment_guard_visitor_check_in" />
+
+    <fragment
+        android:id="@+id/guardVisitorLogFragment"
+        android:name="com.mgbheights.android.ui.guard.GuardVisitorLogFragment"
+        android:label="Visitor Log"
+        tools:layout="@layout/fragment_guard_visitor_log" />
+
+    <fragment
+        android:id="@+id/guardProfileFragment"
+        android:name="com.mgbheights.android.ui.guard.GuardProfileFragment"
+        android:label="Profile"
+        tools:layout="@layout/fragment_guard_profile" />
+
+    <fragment
+        android:id="@+id/guardSettingsFragment"
+        android:name="com.mgbheights.android.ui.guard.GuardSettingsFragment"
+        android:label="Settings"
+        tools:layout="@layout/fragment_guard_settings" />
+
+</navigation>

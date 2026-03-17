@@ -107,6 +107,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.analytics)
 
@@ -114,7 +115,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     // Third Party
-    implementation(libs.coil)
+    implementation(libs.coil) // Kept for compatibility if needed, but Glide is preferred by prompt
+    implementation(libs.glide)
+    ksp(libs.glide.compiler)
+    implementation(libs.circleimageview)
     implementation(libs.razorpay)
     implementation(libs.lottie)
     implementation(libs.timber)
@@ -128,4 +132,3 @@ dependencies {
     androidTestImplementation(libs.test.runner)
     debugImplementation(libs.leakcanary)
 }
-

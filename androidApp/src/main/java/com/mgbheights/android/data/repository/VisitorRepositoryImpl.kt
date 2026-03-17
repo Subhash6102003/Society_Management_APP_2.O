@@ -2,7 +2,6 @@ package com.mgbheights.android.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.mgbheights.android.data.local.dao.VisitorDao
 import com.mgbheights.android.data.mapper.*
 import com.mgbheights.shared.domain.model.Visitor
 import com.mgbheights.shared.domain.model.VisitorStatus
@@ -12,15 +11,13 @@ import com.mgbheights.shared.util.Resource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class VisitorRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore,
-    private val visitorDao: VisitorDao
+    private val firestore: FirebaseFirestore
 ) : VisitorRepository {
 
     private val visitorsRef = firestore.collection(Constants.COLLECTION_VISITORS)
@@ -30,8 +27,7 @@ class VisitorRepositoryImpl @Inject constructor(
         if (doc.exists()) Resource.success(doc.data!!.toVisitor().copy(id = doc.id))
         else Resource.error("Visitor not found")
     } catch (e: Exception) {
-        val cached = visitorDao.getVisitorById(visitorId)
-        if (cached != null) Resource.success(cached.toDomain()) else Resource.error(e.message ?: "Error", e)
+        Resource.error(e.message ?: "Error", e)
     }
 
     override fun observeVisitor(visitorId: String): Flow<Resource<Visitor>> = callbackFlow {
@@ -46,15 +42,20 @@ class VisitorRepositoryImpl @Inject constructor(
     override suspend fun getVisitorsByFlat(flatId: String): Resource<List<Visitor>> = try {
         val snap = visitorsRef.whereEqualTo("flatId", flatId).orderBy("createdAt", Query.Direction.DESCENDING).get().await()
         val visitors = snap.documents.mapNotNull { it.data?.toVisitor()?.copy(id = it.id) }
-        visitorDao.insertVisitors(visitors.map { it.toEntity() })
         Resource.success(visitors)
     } catch (e: Exception) {
-        val cached = visitorDao.getVisitorsByFlat(flatId)
-        if (cached.isNotEmpty()) Resource.success(cached.map { it.toDomain() }) else Resource.error(e.message ?: "Error", e)
+        Resource.error(e.message ?: "Error", e)
     }
 
-    override fun observeVisitorsByFlat(flatId: String): Flow<Resource<List<Visitor>>> =
-        visitorDao.observeVisitorsByFlat(flatId).map { Resource.success(it.map { e -> e.toDomain() }) }
+    override fun observeVisitorsByFlat(flatId: String): Flow<Resource<List<Visitor>>> = callbackFlow {
+        val listener = visitorsRef.whereEqualTo("flatId", flatId).orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snap, error ->
+                if (error != null) { trySend(Resource.error(error.message ?: "Error")); return@addSnapshotListener }
+                val visitors = snap?.documents?.mapNotNull { it.data?.toVisitor()?.copy(id = it.id) } ?: emptyList()
+                trySend(Resource.success(visitors))
+            }
+        awaitClose { listener.remove() }
+    }
 
     override suspend fun getVisitorsByGuard(guardId: String): Resource<List<Visitor>> = try {
         val snap = visitorsRef.whereEqualTo("guardId", guardId).orderBy("createdAt", Query.Direction.DESCENDING).get().await()
@@ -64,26 +65,33 @@ class VisitorRepositoryImpl @Inject constructor(
     override suspend fun getActiveVisitors(): Resource<List<Visitor>> = try {
         val snap = visitorsRef.whereIn("status", listOf(VisitorStatus.APPROVED.name, VisitorStatus.CHECKED_IN.name)).get().await()
         Resource.success(snap.documents.mapNotNull { it.data?.toVisitor()?.copy(id = it.id) })
-    } catch (e: Exception) {
-        val cached = visitorDao.getActiveVisitors()
-        if (cached.isNotEmpty()) Resource.success(cached.map { it.toDomain() }) else Resource.error(e.message ?: "Error", e)
-    }
+    } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
-    override fun observeActiveVisitors(): Flow<Resource<List<Visitor>>> =
-        visitorDao.observeActiveVisitors().map { Resource.success(it.map { e -> e.toDomain() }) }
+    override fun observeActiveVisitors(): Flow<Resource<List<Visitor>>> = callbackFlow {
+        val listener = visitorsRef.whereIn("status", listOf(VisitorStatus.APPROVED.name, VisitorStatus.CHECKED_IN.name))
+            .addSnapshotListener { snap, error ->
+                if (error != null) { trySend(Resource.error(error.message ?: "Error")); return@addSnapshotListener }
+                val visitors = snap?.documents?.mapNotNull { it.data?.toVisitor()?.copy(id = it.id) } ?: emptyList()
+                trySend(Resource.success(visitors))
+            }
+        awaitClose { listener.remove() }
+    }
 
     override suspend fun getAllVisitors(): Resource<List<Visitor>> = try {
         val snap = visitorsRef.orderBy("createdAt", Query.Direction.DESCENDING).get().await()
         val visitors = snap.documents.mapNotNull { it.data?.toVisitor()?.copy(id = it.id) }
-        visitorDao.insertVisitors(visitors.map { it.toEntity() })
         Resource.success(visitors)
-    } catch (e: Exception) {
-        val cached = visitorDao.getAllVisitors()
-        if (cached.isNotEmpty()) Resource.success(cached.map { it.toDomain() }) else Resource.error(e.message ?: "Error", e)
-    }
+    } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
-    override fun observeAllVisitors(): Flow<Resource<List<Visitor>>> =
-        visitorDao.observeAllVisitors().map { Resource.success(it.map { e -> e.toDomain() }) }
+    override fun observeAllVisitors(): Flow<Resource<List<Visitor>>> = callbackFlow {
+        val listener = visitorsRef.orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snap, error ->
+                if (error != null) { trySend(Resource.error(error.message ?: "Error")); return@addSnapshotListener }
+                val visitors = snap?.documents?.mapNotNull { it.data?.toVisitor()?.copy(id = it.id) } ?: emptyList()
+                trySend(Resource.success(visitors))
+            }
+        awaitClose { listener.remove() }
+    }
 
     override suspend fun getTodaysVisitors(): Resource<List<Visitor>> = try {
         val startOfDay = java.util.Calendar.getInstance().apply {
@@ -109,14 +117,12 @@ class VisitorRepositoryImpl @Inject constructor(
         val docRef = visitorsRef.document()
         val newVisitor = visitor.copy(id = docRef.id, createdAt = System.currentTimeMillis(), updatedAt = System.currentTimeMillis())
         docRef.set(newVisitor.toFirestoreMap()).await()
-        visitorDao.insertVisitor(newVisitor.toEntity())
         Resource.success(newVisitor)
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
     override suspend fun updateVisitor(visitor: Visitor): Resource<Visitor> = try {
         val updated = visitor.copy(updatedAt = System.currentTimeMillis())
         visitorsRef.document(visitor.id).set(updated.toFirestoreMap()).await()
-        visitorDao.updateVisitor(updated.toEntity())
         Resource.success(updated)
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
@@ -176,7 +182,14 @@ class VisitorRepositoryImpl @Inject constructor(
 
     override suspend fun getVisitorHistory(flatId: String): Resource<List<Visitor>> = getVisitorsByFlat(flatId)
 
-    override fun observePendingApprovals(residentId: String): Flow<Resource<List<Visitor>>> =
-        visitorDao.observePendingForResident(residentId).map { Resource.success(it.map { e -> e.toDomain() }) }
+    override fun observePendingApprovals(residentId: String): Flow<Resource<List<Visitor>>> = callbackFlow {
+        val listener = visitorsRef.whereEqualTo("residentId", residentId)
+            .whereEqualTo("status", VisitorStatus.PENDING.name)
+            .addSnapshotListener { snap, error ->
+                if (error != null) { trySend(Resource.error(error.message ?: "Error")); return@addSnapshotListener }
+                val visitors = snap?.documents?.mapNotNull { it.data?.toVisitor()?.copy(id = it.id) } ?: emptyList()
+                trySend(Resource.success(visitors))
+            }
+        awaitClose { listener.remove() }
+    }
 }
-

@@ -15,7 +15,7 @@ import com.mgbheights.android.data.local.entity.*
         ComplaintEntity::class,
         VisitorEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class MgbDatabase : RoomDatabase() {
@@ -26,4 +26,3 @@ abstract class MgbDatabase : RoomDatabase() {
     abstract fun complaintDao(): ComplaintDao
     abstract fun visitorDao(): VisitorDao
 }
-

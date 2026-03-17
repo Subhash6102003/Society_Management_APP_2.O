@@ -39,6 +39,14 @@ object PhotoCompressor {
     }
 
     /**
+     * Compress a general-purpose photo: resize to 1024x768 max, JPEG 75% quality.
+     * Used for visitor photos, etc.
+     */
+    fun compressGeneralPhoto(context: Context, uri: Uri): String? {
+        return compressImage(context, uri, maxWidth = 1024, maxHeight = 768, quality = 75)
+    }
+
+    /**
      * Core compression: decode → scale → compress → Base64 encode.
      */
     private fun compressImage(
@@ -160,4 +168,3 @@ object PhotoCompressor {
         }
     }
 }
-

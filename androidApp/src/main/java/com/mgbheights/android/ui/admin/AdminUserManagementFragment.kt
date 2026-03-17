@@ -12,6 +12,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.mgbheights.android.R
 import com.mgbheights.android.databinding.FragmentAdminUserManagementBinding
 import com.mgbheights.android.ui.adapter.PendingApprovalAdapter
 import com.mgbheights.shared.domain.model.User
@@ -26,7 +27,7 @@ class AdminUserManagementFragment : Fragment() {
     private val viewModel: AdminViewModel by viewModels()
     private lateinit var adapter: PendingApprovalAdapter
     private var allUsers: List<User> = emptyList()
-    private var currentTab = 0 // 0=All, 1=Pending, 2=Residents, 3=Workers, 4=Guards
+    private var currentTab = 0 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentAdminUserManagementBinding.inflate(inflater, container, false)
@@ -41,7 +42,6 @@ class AdminUserManagementFragment : Fragment() {
         setupSearch()
         setupFab()
         observeViewModel()
-        // Load ALL users so all tabs work (All, Pending, Residents, Workers, Guards)
         viewModel.loadAllUsers()
     }
 
@@ -67,6 +67,10 @@ class AdminUserManagementFragment : Fragment() {
                     .setPositiveButton("Delete") { _, _ -> viewModel.rejectUser(user.id) }
                     .setNegativeButton("Cancel", null)
                     .show()
+            },
+            onItemClick = { user ->
+                val action = AdminUserManagementFragmentDirections.actionUserManagementToUserDetail(user.id)
+                findNavController().navigate(action)
             }
         )
         binding.rvUsers.layoutManager = LinearLayoutManager(requireContext())
@@ -90,7 +94,6 @@ class AdminUserManagementFragment : Fragment() {
 
     private fun setupFab() {
         binding.fabAddUser.setOnClickListener {
-            // Navigate to role selection to add new staff
             findNavController().navigate(com.mgbheights.android.R.id.roleSelectionFragment)
         }
         binding.fabAddUser.visibility = View.GONE
@@ -100,8 +103,8 @@ class AdminUserManagementFragment : Fragment() {
         val query = binding.etSearch.text?.toString()?.trim()?.lowercase() ?: ""
         val filtered = allUsers.filter { user ->
             val matchesTab = when (currentTab) {
-                0 -> true // All
-                1 -> !user.isApproved // Pending
+                0 -> true 
+                1 -> !user.isApproved 
                 2 -> user.role.name == "RESIDENT" || user.role.name == "TENANT"
                 3 -> user.role.name == "WORKER" || user.role.name == "SECURITY_GUARD_WORKER"
                 4 -> user.role.name == "SECURITY_GUARD" || user.role.name == "SECURITY_GUARD_WORKER"
@@ -150,4 +153,3 @@ class AdminUserManagementFragment : Fragment() {
         _binding = null
     }
 }
-

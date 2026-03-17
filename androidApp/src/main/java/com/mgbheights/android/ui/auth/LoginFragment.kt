@@ -1,35 +1,28 @@
 package com.mgbheights.android.ui.auth
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
-import androidx.core.widget.doAfterTextChanged
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.mgbheights.android.R
 import com.mgbheights.android.databinding.FragmentLoginBinding
-import com.mgbheights.shared.domain.model.UserRole
-import com.mgbheights.shared.util.Constants
-import com.mgbheights.shared.util.Resource
-import com.mgbheights.shared.util.Validators
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
+import com.mgbheights.android.ui.admin.AdminActivity
+import com.mgbheights.android.ui.guard.GuardActivity
+import com.mgbheights.android.ui.resident.ResidentActivity
+import com.mgbheights.android.ui.tenant.TenantActivity
+import com.mgbheights.android.ui.worker.WorkerActivity
 
-@AndroidEntryPoint
 class LoginFragment : Fragment() {
 
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
-
-    private val viewModel: AuthViewModel by activityViewModels()
-    private var hasNavigated = false
-
-    @Inject
-    lateinit var firebaseAuth: FirebaseAuth
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
@@ -38,124 +31,99 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        hasNavigated = false
 
-        // Check if already logged in via Firebase — auto-navigate
-        viewModel.isLoggedIn.observe(viewLifecycleOwner) { loggedIn ->
-            if (loggedIn && !hasNavigated) {
-                viewModel.currentUser.value?.let { state ->
-                    if (state is Resource.Success) {
-                        navigateBasedOnUser(state.data)
-                    }
-                }
-            }
+        binding.btnLogin.setOnClickListener { attemptLogin() }
+        binding.tvForgotPassword.setOnClickListener {
+            findNavController().navigate(R.id.action_loginFragment_to_forgotPasswordEmailFragment)
         }
-
-        viewModel.currentUser.observe(viewLifecycleOwner) { state ->
-            if (state is Resource.Success && viewModel.isLoggedIn.value == true && !hasNavigated) {
-                navigateBasedOnUser(state.data)
-            }
+        binding.tvSignUp.setOnClickListener {
+            findNavController().navigate(R.id.action_loginFragment_to_signUpEmailFragment)
         }
-
-        setupUI()
-        observeViewModel()
     }
 
-    private fun navigateBasedOnUser(user: com.mgbheights.shared.domain.model.User) {
-        if (hasNavigated) return
-        if (findNavController().currentDestination?.id != R.id.loginFragment) return
+    private fun attemptLogin() {
+        val email = binding.etEmail.text.toString().trim()
+        val pass  = binding.etPassword.text.toString().trim()
 
-        val isAdminEmail = (firebaseAuth.currentUser?.email ?: "").equals(Constants.ADMIN_DEFAULT_EMAIL, ignoreCase = true)
-        val isEmailVerified = firebaseAuth.currentUser?.isEmailVerified == true
-
-        // Admin skips email verification
-        if (!isAdminEmail && !isEmailVerified) {
-            hasNavigated = true
-            viewModel.isFromSignUp = false
-            viewModel.sendEmailVerification()
-            findNavController().navigate(R.id.action_login_to_emailVerification)
+        if (email.isEmpty() || pass.isEmpty()) {
+            showError("Enter email and password.")
             return
         }
 
-        hasNavigated = true
-        when {
-            !user.isProfileComplete -> {
-                findNavController().navigate(R.id.action_login_to_onboarding)
-            }
-            !user.isApproved && user.role != UserRole.ADMIN -> {
-                findNavController().navigate(R.id.action_login_to_awaiting)
-            }
-            else -> {
-                findNavController().navigate(R.id.action_login_to_dashboard)
-            }
-        }
-    }
+        binding.progressBar.visibility = View.VISIBLE
+        binding.btnLogin.isEnabled = false
 
-    private fun setupUI() {
-        binding.etEmail.doAfterTextChanged {
-            binding.tvError.isVisible = false
-            updateLoginButtonState()
-        }
-        binding.etPassword.doAfterTextChanged {
-            binding.tvError.isVisible = false
-            updateLoginButtonState()
-        }
-
-        binding.btnLogin.setOnClickListener {
-            val email = binding.etEmail.text?.toString()?.trim() ?: ""
-            val password = binding.etPassword.text?.toString() ?: ""
-            if (Validators.isValidEmailRequired(email) && Validators.isValidPassword(password)) {
-                viewModel.loginWithEmail(email, password)
-            } else {
-                if (!Validators.isValidEmailRequired(email)) {
-                    showError("Please enter a valid email address")
-                } else {
-                    showError("Password must be at least 6 characters")
+        FirebaseAuth.getInstance()
+            .signInWithEmailAndPassword(email, pass)
+            .addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    binding.progressBar.visibility = View.GONE
+                    binding.btnLogin.isEnabled = true
+                    showError(task.exception?.message ?: "Login failed.")
+                    return@addOnCompleteListener
+                }
+                
+                val user = FirebaseAuth.getInstance().currentUser!!
+                user.reload().addOnCompleteListener {
+                    if (!user.isEmailVerified) {
+                        FirebaseAuth.getInstance().signOut()
+                        binding.progressBar.visibility = View.GONE
+                        binding.btnLogin.isEnabled = true
+                        showError("Please verify your email before logging in.")
+                        // Navigate to verify email if needed, but OTP flow is preferred for signup
+                    } else {
+                        routeByRole(user.uid)
+                    }
                 }
             }
-        }
-
-        binding.tvSignUp.setOnClickListener {
-            findNavController().navigate(R.id.action_login_to_roleSelection)
-        }
-
-        binding.tvForgotPassword.setOnClickListener {
-            findNavController().navigate(R.id.action_login_to_forgotPassword)
-        }
     }
 
-    private fun updateLoginButtonState() {
-        val email = binding.etEmail.text?.toString()?.trim() ?: ""
-        val password = binding.etPassword.text?.toString() ?: ""
-        binding.btnLogin.isEnabled = email.isNotBlank() && password.isNotBlank()
-    }
-
-    private fun observeViewModel() {
-        viewModel.loginState.observe(viewLifecycleOwner) { state ->
-            when (state) {
-                is Resource.Loading -> setLoading(true)
-                is Resource.Success -> {
-                    setLoading(false)
-                    // Navigation handled by isLoggedIn / currentUser observer
-                }
-                is Resource.Error -> {
-                    setLoading(false)
-                    showError(state.message)
-                }
+    private fun routeByRole(uid: String) {
+        val db   = FirebaseFirestore.getInstance()
+        val cols = listOf("admins","residents","tenants","guards","workers")
+        var i    = 0
+        fun next() {
+            if (i >= cols.size) {
+                binding.progressBar.visibility = View.GONE
+                binding.btnLogin.isEnabled = true
+                FirebaseAuth.getInstance().signOut()
+                showErrorDialog("No account found. Contact your administrator.")
+                return
             }
+            db.collection(cols[i]).document(uid).get()
+                .addOnSuccessListener { doc ->
+                    if (doc.exists()) {
+                        binding.progressBar.visibility = View.GONE
+                        val intent = when (doc.getString("role")) {
+                            "admin"    -> Intent(requireContext(), AdminActivity::class.java)
+                            "resident" -> Intent(requireContext(), ResidentActivity::class.java)
+                            "tenant"   -> Intent(requireContext(), TenantActivity::class.java)
+                            "guard"    -> Intent(requireContext(), GuardActivity::class.java)
+                            "worker"   -> Intent(requireContext(), WorkerActivity::class.java)
+                            else       -> null
+                        }
+                        if (intent != null) {
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            startActivity(intent)
+                            requireActivity().finishAffinity()
+                        } else { i++; next() }
+                    } else { i++; next() }
+                }
+                .addOnFailureListener { i++; next() }
         }
+        next()
     }
 
-    private fun setLoading(loading: Boolean) {
-        binding.progressLoading.isVisible = loading
-        binding.btnLogin.isEnabled = !loading
-        binding.etEmail.isEnabled = !loading
-        binding.etPassword.isEnabled = !loading
+    private fun showError(msg: String) {
+        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
     }
 
-    private fun showError(message: String) {
-        binding.tvError.text = message
-        binding.tvError.isVisible = true
+    private fun showErrorDialog(msg: String) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Error")
+            .setMessage(msg)
+            .setPositiveButton("OK", null)
+            .show()
     }
 
     override fun onDestroyView() {

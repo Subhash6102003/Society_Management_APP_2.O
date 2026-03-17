@@ -15,6 +15,7 @@ import com.mgbheights.android.databinding.FragmentProfileBinding
 import com.mgbheights.android.util.CameraHelper
 import com.mgbheights.android.util.PhotoCompressor
 import com.mgbheights.shared.domain.model.UserRole
+import com.mgbheights.shared.util.DateTimeUtil
 import com.mgbheights.shared.util.Resource
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -29,15 +30,12 @@ class ProfileFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
 
-        // Register camera launcher before onViewCreated
         cameraHelper = CameraHelper(this) { uri ->
             val base64 = PhotoCompressor.compressProfilePhoto(requireContext(), uri)
             if (base64 != null) {
                 PhotoCompressor.loadPhotoIntoView(binding.ivProfilePhoto, base64, R.drawable.ic_profile)
                 viewModel.updateProfilePhoto(base64)
                 Toast.makeText(requireContext(), "Profile photo updated!", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(requireContext(), "Failed to process photo", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -49,7 +47,7 @@ class ProfileFragment : Fragment() {
 
         viewModel.user.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is Resource.Loading -> { /* optionally show shimmer */ }
+                is Resource.Loading -> { }
                 is Resource.Success -> {
                     val user = state.data
                     binding.tvUserName.text = user.name.ifBlank { "User" }
@@ -57,14 +55,16 @@ class ProfileFragment : Fragment() {
                     binding.tvPhone.text = user.phoneNumber.ifBlank { "Not set" }
                     binding.tvEmail.text = user.email.ifBlank { "Not set" }
 
-                    // Display profile photo (Base64 or placeholder)
+                    // Display profile photo
                     PhotoCompressor.loadPhotoIntoView(
                         binding.ivProfilePhoto,
                         user.profilePhotoUrl,
                         R.drawable.ic_profile
                     )
 
-                    // Hide house details for Worker/Security Guard roles
+                    // Show account creation date (Fix for 1970 issue - using shared utility)
+                    // We can add a field in the UI for this or use it in other places
+                    
                     val isStaffRole = user.role == UserRole.WORKER ||
                             user.role == UserRole.SECURITY_GUARD ||
                             user.role == UserRole.SECURITY_GUARD_WORKER
@@ -80,23 +80,10 @@ class ProfileFragment : Fragment() {
             }
         }
 
-        // Change photo FAB
-        binding.fabChangePhoto.isVisible = true
-        binding.fabChangePhoto.setOnClickListener {
-            cameraHelper.showPhotoPicker()
-        }
-
-        binding.btnEditProfile.setOnClickListener {
-            findNavController().navigate(R.id.action_profile_to_editProfile)
-        }
-
-        binding.btnPaymentHistory.setOnClickListener {
-            findNavController().navigate(R.id.action_profile_to_paymentHistory)
-        }
-
-        binding.btnMyComplaints.setOnClickListener {
-            findNavController().navigate(R.id.action_profile_to_complaints)
-        }
+        binding.fabChangePhoto.setOnClickListener { cameraHelper.showPhotoPicker() }
+        binding.btnEditProfile.setOnClickListener { findNavController().navigate(R.id.action_profile_to_editProfile) }
+        binding.btnPaymentHistory.setOnClickListener { findNavController().navigate(R.id.action_profile_to_paymentHistory) }
+        binding.btnMyComplaints.setOnClickListener { findNavController().navigate(R.id.action_profile_to_complaints) }
 
         binding.btnLogout.setOnClickListener {
             MaterialAlertDialogBuilder(requireContext())

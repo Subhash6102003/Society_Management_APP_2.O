@@ -26,7 +26,6 @@ class ProfileViewModel @Inject constructor(
     private val _profile = MutableLiveData<Resource<User>>()
     val profile: LiveData<Resource<User>> = _profile
 
-    // Alias for backward compat
     val user: LiveData<Resource<User>> get() = _profile
 
     private val _updateState = MutableLiveData<Resource<User>>()
@@ -53,6 +52,8 @@ class ProfileViewModel @Inject constructor(
             val currentResult = getCurrentUserUseCase()
             if (currentResult.isSuccess) {
                 val current = currentResult.getOrNull()!!
+                // FIX: Don't reset isApproved if it's already true (e.g. Admin pre-approved this account)
+                val isAlreadyApproved = current.isApproved
                 val updated = current.copy(
                     name = name,
                     email = email,
@@ -61,7 +62,7 @@ class ProfileViewModel @Inject constructor(
                     houseNumber = flatNumber,
                     role = role,
                     isProfileComplete = true,
-                    isApproved = role == UserRole.ADMIN,
+                    isApproved = isAlreadyApproved || role == UserRole.ADMIN,
                     updatedAt = System.currentTimeMillis()
                 )
                 _updateState.value = userRepository.updateUser(updated)
@@ -84,15 +85,15 @@ class ProfileViewModel @Inject constructor(
                     towerBlock = towerBlock,
                     updatedAt = System.currentTimeMillis()
                 )
-                _updateState.value = userRepository.updateUser(updated)
-                _profile.value = Resource.Success(updated)
+                val result = userRepository.updateUser(updated)
+                _updateState.value = result
+                if (result.isSuccess) {
+                    _profile.value = Resource.Success(updated)
+                }
             }
         }
     }
 
-    /**
-     * Update only the profile photo (Base64 data URI stored in Firestore).
-     */
     fun updateProfilePhoto(base64DataUri: String) {
         viewModelScope.launch {
             val currentResult = getCurrentUserUseCase()
@@ -110,10 +111,6 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Submit an edit request for admin approval.
-     * If user is admin, apply changes directly.
-     */
     fun submitEditRequest(newName: String, newEmail: String, newFlatNumber: String, newTowerBlock: String) {
         viewModelScope.launch {
             _editRequestState.value = Resource.Loading
@@ -121,7 +118,6 @@ class ProfileViewModel @Inject constructor(
             if (currentResult.isSuccess) {
                 val current = currentResult.getOrNull()!!
 
-                // Admin edits are applied immediately
                 if (current.role == UserRole.ADMIN) {
                     val updated = current.copy(
                         name = newName,
@@ -133,14 +129,13 @@ class ProfileViewModel @Inject constructor(
                     val result = userRepository.updateUser(updated)
                     if (result.isSuccess) {
                         _profile.value = Resource.Success(updated)
-                        _editRequestState.value = Resource.Success(EditRequest()) // Signal success
+                        _editRequestState.value = Resource.Success(EditRequest())
                     } else {
                         _editRequestState.value = Resource.error("Failed to update profile")
                     }
                     return@launch
                 }
 
-                // Build change map
                 val requestedChanges = mutableMapOf<String, String>()
                 val currentValues = mutableMapOf<String, String>()
 

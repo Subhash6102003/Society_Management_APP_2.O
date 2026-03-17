@@ -26,11 +26,9 @@ class SignUpFragment : Fragment() {
     private val viewModel: AuthViewModel by activityViewModels()
     private var accountCreated = false
 
-    // Camera helpers for profile photo and ID proof
     private lateinit var profilePhotoCameraHelper: CameraHelper
     private lateinit var idProofCameraHelper: CameraHelper
 
-    // Temporary Base64 strings
     private var profilePhotoBase64: String = ""
     private var idProofBase64: String = ""
 
@@ -41,16 +39,12 @@ class SignUpFragment : Fragment() {
     ): View {
         _binding = FragmentSignupBinding.inflate(inflater, container, false)
 
-        // Must register ActivityResult launchers BEFORE onViewCreated
         profilePhotoCameraHelper = CameraHelper(this) { uri ->
             val base64 = PhotoCompressor.compressProfilePhoto(requireContext(), uri)
             if (base64 != null) {
                 profilePhotoBase64 = base64
                 PhotoCompressor.loadPhotoIntoView(binding.ivProfilePhoto, base64, R.drawable.ic_profile)
                 binding.btnCaptureProfile.text = "Change Photo"
-                Toast.makeText(requireContext(), "Profile photo added!", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(requireContext(), "Failed to process photo", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -60,9 +54,6 @@ class SignUpFragment : Fragment() {
                 idProofBase64 = base64
                 PhotoCompressor.loadPhotoIntoView(binding.ivIdProof, base64, R.drawable.ic_notices)
                 binding.btnCaptureIdProof.text = "Change ID Proof"
-                Toast.makeText(requireContext(), "ID proof added!", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(requireContext(), "Failed to process photo", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -75,7 +66,6 @@ class SignUpFragment : Fragment() {
             .replaceFirstChar { it.uppercase() }
         binding.tvRoleBadge.text = "Registering as: $roleName"
 
-        // Determine role type
         val isStaffRole = viewModel.selectedRole in listOf(
             UserRole.SECURITY_GUARD, UserRole.WORKER, UserRole.SECURITY_GUARD_WORKER
         )
@@ -83,18 +73,11 @@ class SignUpFragment : Fragment() {
             UserRole.TENANT, UserRole.SECURITY_GUARD, UserRole.WORKER, UserRole.SECURITY_GUARD_WORKER
         )
 
-        // Show/hide sections based on role
         binding.cardHouseDetails.isVisible = !isStaffRole
-        binding.cardProfilePhoto.isVisible = true  // All roles can add profile photo
-        binding.cardIdProof.isVisible = needsIdProof  // ID proof for non-resident roles
+        binding.cardIdProof.isVisible = needsIdProof
 
-        // Wire up camera buttons
-        binding.btnCaptureProfile.setOnClickListener {
-            profilePhotoCameraHelper.showPhotoPicker()
-        }
-        binding.btnCaptureIdProof.setOnClickListener {
-            idProofCameraHelper.showPhotoPicker()
-        }
+        binding.btnCaptureProfile.setOnClickListener { profilePhotoCameraHelper.showPhotoPicker() }
+        binding.btnCaptureIdProof.setOnClickListener { idProofCameraHelper.showPhotoPicker() }
 
         binding.btnBack.setOnClickListener { findNavController().navigateUp() }
         binding.btnRegister.setOnClickListener { handleRegistration(isStaffRole) }
@@ -118,7 +101,6 @@ class SignUpFragment : Fragment() {
         if (!Validators.isValidPassword(password)) { showError("Password must be at least 6 characters"); return }
         if (!isStaffRole && flat.isBlank()) { showError("Please enter your flat number"); return }
 
-        // Store signup form data in ViewModel for use after email verification
         viewModel.signUpName = name
         viewModel.signUpPhone = phone
         viewModel.signUpFlatNumber = flat
@@ -127,8 +109,7 @@ class SignUpFragment : Fragment() {
         viewModel.signUpIdProof = idProofBase64
         viewModel.isFromSignUp = true
 
-        // Create the Firebase Auth account (this also sends verification email)
-        viewModel.signUpWithEmail(email, password)
+        viewModel.signUpWithEmail(email, password, viewModel.selectedRole, name)
     }
 
     private fun observeViewModel() {
