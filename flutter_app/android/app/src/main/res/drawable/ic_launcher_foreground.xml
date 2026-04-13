@@ -1,0 +1,31 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Building icon for MGB Heights -->
+    <group
+        android:translateX="27"
+        android:translateY="27">
+        <!-- Main building -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M27,10L27,44L7,44L7,20L17,10Z" />
+        <!-- Windows -->
+        <path
+            android:fillColor="#EC3713"
+            android:pathData="M12,24h4v4h-4zM12,32h4v4h-4zM20,16h4v4h-4zM20,24h4v4h-4zM20,32h4v4h-4z" />
+        <!-- Second building -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M31,4L31,44L47,44L47,4Z" />
+        <!-- Windows on second building -->
+        <path
+            android:fillColor="#EC3713"
+            android:pathData="M34,8h4v4h-4zM34,16h4v4h-4zM34,24h4v4h-4zM34,32h4v4h-4zM40,8h4v4h-4zM40,16h4v4h-4zM40,24h4v4h-4zM40,32h4v4h-4z" />
+        <!-- Ground line -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M0,44L54,44L54,48L0,48Z" />
+    </group>
+</vector>
