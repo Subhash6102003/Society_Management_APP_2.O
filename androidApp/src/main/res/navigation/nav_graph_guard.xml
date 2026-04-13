@@ -7,36 +7,33 @@
 
     <fragment
         android:id="@+id/guardHomeFragment"
-        android:name="com.mgbheights.android.ui.guard.GuardHomeFragment"
-        android:label="Home"
-        tools:layout="@layout/fragment_guard_home">
-        <action
-            android:id="@+id/action_guardHome_to_guardVisitorCheckIn"
-            app:destination="@id/guardVisitorCheckInFragment" />
+        android:name="com.mgbheights.android.ui.guard.GuardDashboardFragment">
+        <action android:id="@+id/action_guard_home_to_checkin" app:destination="@id/guardVisitorCheckInFragment" />
+        <action android:id="@+id/action_guard_home_to_log" app:destination="@id/guardVisitorLogFragment" />
+        <action android:id="@+id/action_guard_home_to_profile" app:destination="@id/guardProfileFragment" />
+        <action android:id="@+id/action_guard_home_to_shop" app:destination="@id/guardShopFragment" />
+        <action android:id="@+id/action_guard_home_to_settings" app:destination="@id/guardSettingsFragment" />
     </fragment>
 
-    <fragment
-        android:id="@+id/guardVisitorCheckInFragment"
-        android:name="com.mgbheights.android.ui.guard.GuardVisitorCheckInFragment"
-        android:label="Visitor Check-in"
-        tools:layout="@layout/fragment_guard_visitor_check_in" />
-
-    <fragment
-        android:id="@+id/guardVisitorLogFragment"
-        android:name="com.mgbheights.android.ui.guard.GuardVisitorLogFragment"
-        android:label="Visitor Log"
-        tools:layout="@layout/fragment_guard_visitor_log" />
+    <fragment android:id="@+id/guardDashboardFragment" android:name="com.mgbheights.android.ui.guard.GuardDashboardFragment" />
+    <fragment android:id="@+id/guardVisitorCheckInFragment" android:name="com.mgbheights.android.ui.guard.GuardAddVisitorFragment" />
+    <fragment android:id="@+id/guardAddVisitorFragment" android:name="com.mgbheights.android.ui.guard.GuardAddVisitorFragment" />
+    <fragment android:id="@+id/guardVisitorLogFragment" android:name="com.mgbheights.android.ui.guard.GuardVisitorLogFragment" />
 
     <fragment
         android:id="@+id/guardProfileFragment"
-        android:name="com.mgbheights.android.ui.guard.GuardProfileFragment"
-        android:label="Profile"
-        tools:layout="@layout/fragment_guard_profile" />
+        android:name="com.mgbheights.android.ui.guard.GuardProfileFragment">
+        <action android:id="@+id/action_guard_profile_to_settings" app:destination="@id/guardSettingsFragment" />
+    </fragment>
+
+    <fragment android:id="@+id/guardShopFragment" android:name="com.mgbheights.android.ui.guard.GuardShopFragment" />
 
     <fragment
         android:id="@+id/guardSettingsFragment"
-        android:name="com.mgbheights.android.ui.guard.GuardSettingsFragment"
-        android:label="Settings"
-        tools:layout="@layout/fragment_guard_settings" />
+        android:name="com.mgbheights.android.ui.guard.GuardSettingsFragment">
+        <action android:id="@+id/action_guard_settings_to_profile" app:destination="@id/guardProfileFragment" />
+    </fragment>
 
 </navigation>
+
+

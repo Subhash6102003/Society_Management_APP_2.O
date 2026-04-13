@@ -1,3 +1,4 @@
+import com.mgbheights.android.ui.auth.LoginActivity
 package com.mgbheights.android.ui.resident
 
 import android.content.Intent
@@ -11,10 +12,9 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.firebase.auth.FirebaseAuth
+import com.mgbheights.android.MainActivity
 import com.google.firebase.firestore.FirebaseFirestore
-import com.mgbheights.android.R
 import com.mgbheights.android.databinding.ActivityResidentBinding
-import com.mgbheights.android.ui.auth.LoginActivity
 
 class ResidentActivity : AppCompatActivity() {
 
@@ -78,8 +78,8 @@ class ResidentActivity : AppCompatActivity() {
     }
 
     fun logout() {
-        FirebaseAuth.getInstance().signOut()
         val intent = Intent(this, LoginActivity::class.java)
+        val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finishAffinity()

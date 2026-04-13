@@ -1,74 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph_resident"
     app:startDestination="@id/residentHomeFragment">
 
     <fragment
         android:id="@+id/residentHomeFragment"
-        android:name="com.mgbheights.android.ui.resident.ResidentHomeFragment"
-        android:label="Home"
-        tools:layout="@layout/fragment_resident_home">
-        <action
-            android:id="@+id/action_residentHome_to_residentRaiseComplaint"
-            app:destination="@id/residentRaiseComplaintFragment" />
+        android:name="com.mgbheights.android.ui.resident.ResidentHomeFragment">
+        <action android:id="@+id/action_resident_home_to_complaints" app:destination="@id/residentComplaintsFragment" />
+        <action android:id="@+id/action_resident_home_to_notices" app:destination="@id/residentNoticesFragment" />
+        <action android:id="@+id/action_resident_home_to_bills" app:destination="@id/residentBillsFragment" />
+        <action android:id="@+id/action_resident_home_to_worker_list" app:destination="@id/residentWorkerListFragment" />
+        <action android:id="@+id/action_resident_home_to_bookings" app:destination="@id/residentMyBookingsFragment" />
+        <action android:id="@+id/action_resident_home_to_tenants" app:destination="@id/residentMyTenantsFragment" />
+        <action android:id="@+id/action_resident_home_to_maid" app:destination="@id/residentMyMaidFragment" />
+        <action android:id="@+id/action_resident_home_to_shop" app:destination="@id/residentShopFragment" />
+        <action android:id="@+id/action_resident_home_to_profile" app:destination="@id/residentProfileFragment" />
+        <action android:id="@+id/action_resident_home_to_settings" app:destination="@id/residentSettingsFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/residentComplaintsFragment"
-        android:name="com.mgbheights.android.ui.resident.ResidentComplaintsFragment"
-        android:label="Complaints"
-        tools:layout="@layout/fragment_resident_complaints">
-        <action
-            android:id="@+id/action_residentComplaints_to_residentRaiseComplaint"
-            app:destination="@id/residentRaiseComplaintFragment" />
+        android:name="com.mgbheights.android.ui.resident.ResidentComplaintsFragment">
+        <action android:id="@+id/action_resident_complaints_to_raise" app:destination="@id/residentRaiseComplaintFragment" />
     </fragment>
 
-    <fragment
-        android:id="@+id/residentRaiseComplaintFragment"
-        android:name="com.mgbheights.android.ui.resident.ResidentRaiseComplaintFragment"
-        android:label="Raise Complaint"
-        tools:layout="@layout/fragment_resident_raise_complaint" />
+    <fragment android:id="@+id/residentRaiseComplaintFragment" android:name="com.mgbheights.android.ui.resident.ResidentRaiseComplaintFragment" />
+    <fragment android:id="@+id/residentNoticesFragment" android:name="com.mgbheights.android.ui.resident.ResidentNoticesFragment" />
+    <fragment android:id="@+id/residentBillsFragment" android:name="com.mgbheights.android.ui.resident.ResidentBillsFragment" />
 
     <fragment
-        android:id="@+id/residentBillsFragment"
-        android:name="com.mgbheights.android.ui.resident.ResidentBillsFragment"
-        android:label="Bills"
-        tools:layout="@layout/fragment_resident_bills" />
-
-    <fragment
-        android:id="@+id/residentBookingFragment"
-        android:name="com.mgbheights.android.ui.resident.ResidentBookingFragment"
-        android:label="Book a Worker"
-        tools:layout="@layout/fragment_resident_booking">
-        <action
-            android:id="@+id/action_residentBooking_to_residentBookWorker"
-            app:destination="@id/residentBookWorkerFragment" />
+        android:id="@+id/residentWorkerListFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentWorkerListFragment">
+        <action android:id="@+id/action_resident_worker_list_to_booking" app:destination="@id/residentWorkerBookingFragment" />
     </fragment>
 
-    <fragment
-        android:id="@+id/residentBookWorkerFragment"
-        android:name="com.mgbheights.android.ui.resident.ResidentBookWorkerFragment"
-        android:label="Book Worker"
-        tools:layout="@layout/fragment_resident_book_worker" />
+    <fragment android:id="@+id/residentWorkerBookingFragment" android:name="com.mgbheights.android.ui.resident.ResidentWorkerBookingFragment" />
+    <fragment android:id="@+id/residentMyBookingsFragment" android:name="com.mgbheights.android.ui.resident.ResidentMyBookingsFragment" />
 
     <fragment
-        android:id="@+id/residentNoticesFragment"
-        android:name="com.mgbheights.android.ui.resident.ResidentNoticesFragment"
-        android:label="Notices"
-        tools:layout="@layout/fragment_resident_notices" />
+        android:id="@+id/residentMyTenantsFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentMyTenantsFragment">
+        <action android:id="@+id/action_resident_tenants_to_detail" app:destination="@id/residentTenantDetailFragment" />
+    </fragment>
+
+    <fragment android:id="@+id/residentTenantDetailFragment" android:name="com.mgbheights.android.ui.resident.ResidentTenantDetailFragment" />
+    <fragment android:id="@+id/residentMyMaidFragment" android:name="com.mgbheights.android.ui.resident.ResidentMyMaidFragment" />
+
+    <fragment
+        android:id="@+id/residentShopFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentShopFragment">
+        <action android:id="@+id/action_resident_shop_to_post" app:destination="@id/residentShopPostFragment" />
+        <action android:id="@+id/action_resident_shop_to_detail" app:destination="@id/residentShopDetailFragment" />
+    </fragment>
+
+    <fragment android:id="@+id/residentShopPostFragment" android:name="com.mgbheights.android.ui.resident.ResidentShopPostFragment" />
+    <fragment android:id="@+id/residentShopDetailFragment" android:name="com.mgbheights.android.ui.resident.ResidentShopDetailFragment" />
 
     <fragment
         android:id="@+id/residentProfileFragment"
-        android:name="com.mgbheights.android.ui.resident.ResidentProfileFragment"
-        android:label="Profile"
-        tools:layout="@layout/fragment_resident_profile" />
+        android:name="com.mgbheights.android.ui.resident.ResidentProfileFragment">
+        <action android:id="@+id/action_resident_profile_to_settings" app:destination="@id/residentSettingsFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/residentSettingsFragment"
-        android:name="com.mgbheights.android.ui.resident.ResidentSettingsFragment"
-        android:label="Settings"
-        tools:layout="@layout/fragment_resident_settings" />
+        android:name="com.mgbheights.android.ui.resident.ResidentSettingsFragment">
+        <action android:id="@+id/action_resident_settings_to_profile" app:destination="@id/residentProfileFragment" />
+    </fragment>
 
 </navigation>
+

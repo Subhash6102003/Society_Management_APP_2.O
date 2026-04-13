@@ -2,6 +2,7 @@ package com.mgbheights.android.ui.profile
 
 import android.app.Application
 import androidx.lifecycle.*
+import com.mgbheights.shared.domain.model.ApprovalStatus
 import com.mgbheights.shared.domain.model.EditRequest
 import com.mgbheights.shared.domain.model.User
 import com.mgbheights.shared.domain.model.UserRole
@@ -52,8 +53,12 @@ class ProfileViewModel @Inject constructor(
             val currentResult = getCurrentUserUseCase()
             if (currentResult.isSuccess) {
                 val current = currentResult.getOrNull()!!
-                // FIX: Don't reset isApproved if it's already true (e.g. Admin pre-approved this account)
-                val isAlreadyApproved = current.isApproved
+                // Preserve existing approval status; upgrade to APPROVED only for admin role
+                val updatedStatus = when {
+                    role == UserRole.ADMIN -> ApprovalStatus.APPROVED
+                    current.approvalStatus == ApprovalStatus.APPROVED -> ApprovalStatus.APPROVED
+                    else -> current.approvalStatus
+                }
                 val updated = current.copy(
                     name = name,
                     email = email,
@@ -62,7 +67,7 @@ class ProfileViewModel @Inject constructor(
                     houseNumber = flatNumber,
                     role = role,
                     isProfileComplete = true,
-                    isApproved = isAlreadyApproved || role == UserRole.ADMIN,
+                    approvalStatus = updatedStatus,
                     updatedAt = System.currentTimeMillis()
                 )
                 _updateState.value = userRepository.updateUser(updated)

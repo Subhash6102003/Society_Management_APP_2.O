@@ -1,6 +1,78 @@
 import Foundation
-import FirebaseFirestore
 import Combine
+
+// MARK: - Data Models
+
+struct NoticeItem: Identifiable {
+    var id: String
+    var title: String
+    var body: String
+    var category: String
+    var priority: String
+    var createdByName: String
+    var isEmergency: Bool
+    var createdAt: Int64
+}
+
+struct BillItem: Identifiable {
+    var id: String
+    var flatNumber: String
+    var towerBlock: String
+    var month: String
+    var totalAmount: Double
+    var status: String
+    var dueDate: String
+}
+
+struct VisitorItem: Identifiable {
+    var id: String
+    var name: String
+    var phoneNumber: String
+    var purpose: String
+    var flatNumber: String
+    var towerBlock: String
+    var vehicleNumber: String
+    var status: String
+    var photoUrl: String
+    var createdAt: Int64
+}
+
+struct ComplaintItem: Identifiable {
+    var id: String
+    var title: String
+    var description: String
+    var category: String
+    var status: String
+    var priority: String
+    var flatNumber: String
+    var towerBlock: String
+    var createdAtFormatted: String
+}
+
+// MARK: - Supabase REST Helper
+
+private struct SupabaseConfig {
+    static let url = "https://ggoqcgfjehfuupprchdl.supabase.co/rest/v1"
+    static let anonKey = "your_supabase_anon_key_here"
+
+    static func request(_ table: String, query: String = "") -> URLRequest {
+        let urlStr = "\(url)/\(table)\(query.isEmpty ? "" : "?\(query)")"
+        var req = URLRequest(url: URL(string: urlStr)!)
+        req.setValue(anonKey, forHTTPHeaderField: "apikey")
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        return req
+    }
+
+    static func patchRequest(_ table: String, query: String, body: [String: Any]) -> URLRequest {
+        var req = request(table, query: query)
+        req.httpMethod = "PATCH"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        return req
+    }
+}
+
+// MARK: - DashboardViewModel
 
 @MainActor
 class DashboardViewModel: ObservableObject {
@@ -9,56 +81,36 @@ class DashboardViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
 
-    private let db = Firestore.firestore()
-
     func loadDashboard(userId: String, flatNumber: String, role: String) {
         isLoading = true
-
         Task {
-            do {
-                // Load bills
-                let billsSnap = try await db.collection("maintenance_bills")
-                    .whereField("flatNumber", isEqualTo: flatNumber)
-                    .getDocuments()
-
-                let pending = billsSnap.documents
-                    .filter { doc in
-                        let status = doc.data()["status"] as? String ?? ""
-                        return status == "PENDING" || status == "OVERDUE"
-                    }
-                    .compactMap { doc in doc.data()["totalAmount"] as? Double }
-                    .reduce(0, +)
-
-                self.pendingDues = pending
-
-                // Load notices
-                let noticesSnap = try await db.collection("notices")
-                    .order(by: "createdAt", descending: true)
-                    .limit(to: 5)
-                    .getDocuments()
-
-                self.recentNotices = noticesSnap.documents.compactMap { doc in
-                    let data = doc.data()
-                    return NoticeItem(
-                        id: doc.documentID,
-                        title: data["title"] as? String ?? "",
-                        body: data["body"] as? String ?? "",
-                        category: data["category"] as? String ?? "GENERAL",
-                        priority: data["priority"] as? String ?? "NORMAL",
-                        createdByName: data["createdByName"] as? String ?? "",
-                        isEmergency: data["isEmergency"] as? Bool ?? false,
-                        createdAt: data["createdAt"] as? Int64 ?? 0
-                    )
-                }
-
-                self.isLoading = false
-            } catch {
-                self.error = error.localizedDescription
-                self.isLoading = false
-            }
+            async let bills = fetchBills(flatNumber: flatNumber)
+            async let notices = fetchNotices(limit: 5)
+            let (b, n) = await (bills, notices)
+            pendingDues = b.filter { $0.status == "PENDING" || $0.status == "OVERDUE" }
+                           .reduce(0.0) { $0 + $1.totalAmount }
+            recentNotices = n
+            isLoading = false
         }
     }
+
+    private func fetchBills(flatNumber: String) async -> [BillItem] {
+        let req = SupabaseConfig.request("maintenance_bills",
+            query: "flat_number=eq.\(flatNumber.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? flatNumber)&order=created_at.desc")
+        guard let (data, _) = try? await URLSession.shared.data(for: req),
+              let rows = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return [] }
+        return rows.map { parseBill(id: $0["id"] as? String ?? "", row: $0) }
+    }
+
+    private func fetchNotices(limit: Int) async -> [NoticeItem] {
+        let req = SupabaseConfig.request("notices", query: "order=created_at.desc&limit=\(limit)")
+        guard let (data, _) = try? await URLSession.shared.data(for: req),
+              let rows = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return [] }
+        return rows.map { parseNotice(id: $0["id"] as? String ?? "", row: $0) }
+    }
 }
+
+// MARK: - MaintenanceViewModel
 
 @MainActor
 class MaintenanceViewModel: ObservableObject {
@@ -66,216 +118,180 @@ class MaintenanceViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var selectedFilter = "All"
 
-    private let db = Firestore.firestore()
-
     func loadBills(flatNumber: String, isAdmin: Bool) {
         isLoading = true
-
         Task {
-            do {
-                var query: Query = db.collection("maintenance_bills")
-                    .order(by: "createdAt", descending: true)
-
-                if !isAdmin {
-                    query = db.collection("maintenance_bills")
-                        .whereField("flatNumber", isEqualTo: flatNumber)
-                        .order(by: "createdAt", descending: true)
-                }
-
-                let snap = try await query.getDocuments()
-                var allBills = snap.documents.compactMap { doc -> BillItem? in
-                    let data = doc.data()
-                    let timestamp = data["createdAt"] as? Int64 ?? 0
-                    let date = Date(timeIntervalSince1970: TimeInterval(timestamp) / 1000)
-                    let formatter = DateFormatter()
-                    formatter.dateFormat = "MMMM yyyy"
-
-                    let dueTimestamp = data["dueDate"] as? Int64 ?? 0
-                    let dueDate = Date(timeIntervalSince1970: TimeInterval(dueTimestamp) / 1000)
-                    let dueFmt = DateFormatter()
-                    dueFmt.dateFormat = "dd/MM/yyyy"
-
-                    return BillItem(
-                        id: doc.documentID,
-                        flatNumber: data["flatNumber"] as? String ?? "",
-                        towerBlock: data["towerBlock"] as? String ?? "",
-                        month: formatter.string(from: date),
-                        totalAmount: data["totalAmount"] as? Double ?? 0,
-                        status: data["status"] as? String ?? "PENDING",
-                        dueDate: dueFmt.string(from: dueDate)
-                    )
-                }
-
-                if selectedFilter != "All" {
-                    allBills = allBills.filter { $0.status == selectedFilter.uppercased() }
-                }
-
-                self.bills = allBills
-                self.isLoading = false
-            } catch {
-                self.isLoading = false
+            let query = isAdmin
+                ? "order=created_at.desc"
+                : "flat_number=eq.\(flatNumber.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? flatNumber)&order=created_at.desc"
+            let req = SupabaseConfig.request("maintenance_bills", query: query)
+            guard let (data, _) = try? await URLSession.shared.data(for: req),
+                  let rows = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                isLoading = false; return
             }
+            var result = rows.map { parseBill(id: $0["id"] as? String ?? "", row: $0) }
+            if selectedFilter != "All" {
+                result = result.filter { $0.status == selectedFilter.uppercased() }
+            }
+            bills = result
+            isLoading = false
         }
     }
 }
+
+// MARK: - VisitorViewModel
 
 @MainActor
 class VisitorViewModel: ObservableObject {
     @Published var visitors: [VisitorItem] = []
     @Published var isLoading = false
 
-    private let db = Firestore.firestore()
-
     func loadVisitors(flatNumber: String, isGuard: Bool, isAdmin: Bool) {
         isLoading = true
-
         Task {
-            do {
-                var query: Query
-                if isAdmin || isGuard {
-                    query = db.collection("visitors")
-                        .order(by: "createdAt", descending: true)
-                        .limit(to: 50)
-                } else {
-                    query = db.collection("visitors")
-                        .whereField("flatNumber", isEqualTo: flatNumber)
-                        .order(by: "createdAt", descending: true)
-                }
-
-                let snap = try await query.getDocuments()
-                self.visitors = snap.documents.compactMap { doc in
-                    let data = doc.data()
-                    return VisitorItem(
-                        id: doc.documentID,
-                        name: data["name"] as? String ?? "",
-                        phoneNumber: data["phoneNumber"] as? String ?? "",
-                        purpose: data["purpose"] as? String ?? "",
-                        flatNumber: data["flatNumber"] as? String ?? "",
-                        towerBlock: data["towerBlock"] as? String ?? "",
-                        vehicleNumber: data["vehicleNumber"] as? String ?? "",
-                        status: data["status"] as? String ?? "PENDING",
-                        photoUrl: data["photoUrl"] as? String ?? "",
-                        createdAt: data["createdAt"] as? Int64 ?? 0
-                    )
-                }
-                self.isLoading = false
-            } catch {
-                self.isLoading = false
+            let query = (isAdmin || isGuard)
+                ? "order=created_at.desc&limit=50"
+                : "flat_number=eq.\(flatNumber.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? flatNumber)&order=created_at.desc"
+            let req = SupabaseConfig.request("visitors", query: query)
+            guard let (data, _) = try? await URLSession.shared.data(for: req),
+                  let rows = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                isLoading = false; return
             }
+            visitors = rows.map { row in
+                VisitorItem(
+                    id: row["id"] as? String ?? "",
+                    name: row["visitor_name"] as? String ?? "",
+                    phoneNumber: row["visitor_phone"] as? String ?? "",
+                    purpose: row["purpose"] as? String ?? "",
+                    flatNumber: row["flat_number"] as? String ?? "",
+                    towerBlock: row["tower_block"] as? String ?? "",
+                    vehicleNumber: row["vehicle_number"] as? String ?? "",
+                    status: row["status"] as? String ?? "PENDING",
+                    photoUrl: row["photo_url"] as? String ?? "",
+                    createdAt: row["created_at"] as? Int64 ?? 0
+                )
+            }
+            isLoading = false
         }
     }
 
     func approveVisitor(_ visitorId: String, approvedBy: String) {
         Task {
-            try await db.collection("visitors").document(visitorId).updateData([
-                "status": "APPROVED",
-                "approvedBy": approvedBy,
-                "approvedAt": Int64(Date().timeIntervalSince1970 * 1000)
-            ])
+            let req = SupabaseConfig.patchRequest("visitors", query: "id=eq.\(visitorId)",
+                body: ["status": "APPROVED", "updated_at": Int64(Date().timeIntervalSince1970 * 1000)])
+            _ = try? await URLSession.shared.data(for: req)
+            if let idx = visitors.firstIndex(where: { $0.id == visitorId }) {
+                visitors[idx].status = "APPROVED"
+            }
         }
     }
 
     func denyVisitor(_ visitorId: String, reason: String) {
         Task {
-            try await db.collection("visitors").document(visitorId).updateData([
-                "status": "DENIED",
-                "denialReason": reason,
-                "updatedAt": Int64(Date().timeIntervalSince1970 * 1000)
-            ])
+            let req = SupabaseConfig.patchRequest("visitors", query: "id=eq.\(visitorId)",
+                body: ["status": "DENIED", "updated_at": Int64(Date().timeIntervalSince1970 * 1000)])
+            _ = try? await URLSession.shared.data(for: req)
+            if let idx = visitors.firstIndex(where: { $0.id == visitorId }) {
+                visitors[idx].status = "DENIED"
+            }
         }
     }
 }
+
+// MARK: - NoticeViewModel
 
 @MainActor
 class NoticeViewModel: ObservableObject {
     @Published var notices: [NoticeItem] = []
     @Published var isLoading = false
 
-    private let db = Firestore.firestore()
-
     func loadNotices(role: String) {
         isLoading = true
-
         Task {
-            do {
-                let snap = try await db.collection("notices")
-                    .order(by: "createdAt", descending: true)
-                    .getDocuments()
-
-                self.notices = snap.documents.compactMap { doc in
-                    let data = doc.data()
-                    let targetRoles = data["targetRoles"] as? [String] ?? []
-
-                    // Filter by role
-                    guard targetRoles.isEmpty || targetRoles.contains(role) else { return nil }
-
-                    return NoticeItem(
-                        id: doc.documentID,
-                        title: data["title"] as? String ?? "",
-                        body: data["body"] as? String ?? "",
-                        category: data["category"] as? String ?? "GENERAL",
-                        priority: data["priority"] as? String ?? "NORMAL",
-                        createdByName: data["createdByName"] as? String ?? "",
-                        isEmergency: data["isEmergency"] as? Bool ?? false,
-                        createdAt: data["createdAt"] as? Int64 ?? 0
-                    )
-                }
-                self.isLoading = false
-            } catch {
-                self.isLoading = false
+            let req = SupabaseConfig.request("notices", query: "order=created_at.desc")
+            guard let (data, _) = try? await URLSession.shared.data(for: req),
+                  let rows = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                isLoading = false; return
             }
+            notices = rows.compactMap { row in
+                let targetRoles = row["target_roles"] as? [String] ?? []
+                guard targetRoles.isEmpty || targetRoles.contains(role) else { return nil }
+                return parseNotice(id: row["id"] as? String ?? "", row: row)
+            }
+            isLoading = false
         }
     }
 }
+
+// MARK: - ComplaintViewModel
 
 @MainActor
 class ComplaintViewModel: ObservableObject {
     @Published var complaints: [ComplaintItem] = []
     @Published var isLoading = false
 
-    private let db = Firestore.firestore()
-
     func loadComplaints(userId: String, isAdmin: Bool) {
         isLoading = true
-
         Task {
-            do {
-                var query: Query
-                if isAdmin {
-                    query = db.collection("complaints")
-                        .order(by: "createdAt", descending: true)
-                } else {
-                    query = db.collection("complaints")
-                        .whereField("userId", isEqualTo: userId)
-                        .order(by: "createdAt", descending: true)
-                }
-
-                let snap = try await query.getDocuments()
-                let formatter = DateFormatter()
-                formatter.dateFormat = "dd MMM yyyy"
-
-                self.complaints = snap.documents.compactMap { doc in
-                    let data = doc.data()
-                    let timestamp = data["createdAt"] as? Int64 ?? 0
-                    let date = Date(timeIntervalSince1970: TimeInterval(timestamp) / 1000)
-
-                    return ComplaintItem(
-                        id: doc.documentID,
-                        title: data["title"] as? String ?? "",
-                        description: data["description"] as? String ?? "",
-                        category: data["category"] as? String ?? "OTHER",
-                        status: data["status"] as? String ?? "OPEN",
-                        priority: data["priority"] as? String ?? "MEDIUM",
-                        flatNumber: data["flatNumber"] as? String ?? "",
-                        towerBlock: data["towerBlock"] as? String ?? "",
-                        createdAtFormatted: formatter.string(from: date)
-                    )
-                }
-                self.isLoading = false
-            } catch {
-                self.isLoading = false
+            let query = isAdmin
+                ? "order=created_at.desc"
+                : "user_id=eq.\(userId)&order=created_at.desc"
+            let req = SupabaseConfig.request("complaints", query: query)
+            guard let (data, _) = try? await URLSession.shared.data(for: req),
+                  let rows = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                isLoading = false; return
             }
+            let formatter = DateFormatter()
+            formatter.dateFormat = "dd MMM yyyy"
+            complaints = rows.map { row in
+                let ts = row["created_at"] as? Int64 ?? 0
+                let date = Date(timeIntervalSince1970: TimeInterval(ts) / 1000)
+                return ComplaintItem(
+                    id: row["id"] as? String ?? "",
+                    title: row["title"] as? String ?? "",
+                    description: row["description"] as? String ?? "",
+                    category: row["category"] as? String ?? "OTHER",
+                    status: row["status"] as? String ?? "PENDING",
+                    priority: "MEDIUM",
+                    flatNumber: row["flat_number"] as? String ?? "",
+                    towerBlock: row["tower_block"] as? String ?? "",
+                    createdAtFormatted: formatter.string(from: date)
+                )
+            }
+            isLoading = false
         }
     }
 }
 
+// MARK: - Parse Helpers
+
+private func parseBill(id: String, row: [String: Any]) -> BillItem {
+    let ts = row["created_at"] as? Int64 ?? 0
+    let date = Date(timeIntervalSince1970: TimeInterval(ts) / 1000)
+    let monthFmt = DateFormatter(); monthFmt.dateFormat = "MMMM yyyy"
+    let dueTs = row["due_date"] as? Int64 ?? 0
+    let dueDate = Date(timeIntervalSince1970: TimeInterval(dueTs) / 1000)
+    let dueFmt = DateFormatter(); dueFmt.dateFormat = "dd/MM/yyyy"
+    return BillItem(
+        id: id,
+        flatNumber: row["flat_number"] as? String ?? "",
+        towerBlock: row["tower_block"] as? String ?? "",
+        month: monthFmt.string(from: date),
+        totalAmount: row["total_amount"] as? Double ?? 0,
+        status: row["status"] as? String ?? "PENDING",
+        dueDate: dueFmt.string(from: dueDate)
+    )
+}
+
+private func parseNotice(id: String, row: [String: Any]) -> NoticeItem {
+    NoticeItem(
+        id: id,
+        title: row["title"] as? String ?? "",
+        body: row["content"] as? String ?? "",
+        category: row["category"] as? String ?? "GENERAL",
+        priority: "NORMAL",
+        createdByName: row["author_name"] as? String ?? "",
+        isEmergency: false,
+        createdAt: row["created_at"] as? Int64 ?? 0
+    )
+}

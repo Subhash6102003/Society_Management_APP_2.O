@@ -1,0 +1,45 @@
+</FrameLayout>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:text="GuardVisitorLogFragment" />
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+        android:id="@+id/tvVisitorLogTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Visitor Log"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvVisitorLogSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Recent check-ins and entries"
+        android:textSize="13sp" />
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshVisitorLog"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvVisitorLog"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <TextView
+        android:id="@+id/tvVisitorLogEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="No visitors logged yet"
+        android:visibility="gone" />
+
+</LinearLayout>

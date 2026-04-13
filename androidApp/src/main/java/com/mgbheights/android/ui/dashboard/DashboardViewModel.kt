@@ -4,8 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mgbheights.shared.domain.model.*
-import com.mgbheights.shared.domain.usecase.auth.GetCurrentUserUseCase
+import com.mgbheights.shared.domain.model.*import com.mgbheights.shared.domain.usecase.auth.GetCurrentUserUseCase
 import com.mgbheights.shared.domain.usecase.maintenance.GetBillsUseCase
 import com.mgbheights.shared.domain.usecase.notice.GetNoticesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +18,7 @@ data class DashboardState(
     val recentNotices: List<Notice> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val needsApproval: Boolean = false   // user is not yet approved — skip Firestore reads
+    val needsApproval: Boolean = false   // user is PENDING — skip data reads
 )
 
 @HiltViewModel
@@ -45,7 +44,7 @@ class DashboardViewModel @Inject constructor(
     }
 
 
-    /** Load real data from Firebase/Room */
+    /** Load real data from Supabase */
     private suspend fun loadRealData() {
         // Get current user
         val userResult = getCurrentUserUseCase()
@@ -53,9 +52,8 @@ class DashboardViewModel @Inject constructor(
             val user = userResult.getOrNull()!!
             _state.value = _state.value?.copy(user = user)
 
-            // Fix #7: Do NOT fire any Firestore queries for unapproved users —
-            // the security rules would deny them and the fragment should redirect to awaiting.
-            if (!user.isApproved && user.role != UserRole.ADMIN) {
+            // Do not fire any Supabase queries for unapproved/pending users
+            if (user.approvalStatus != ApprovalStatus.APPROVED && user.role != UserRole.ADMIN) {
                 _state.value = _state.value?.copy(isLoading = false, needsApproval = true)
                 return
             }

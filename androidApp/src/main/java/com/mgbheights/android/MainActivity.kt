@@ -12,9 +12,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mgbheights.android.databinding.ActivityMainBinding
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -35,35 +34,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.coordinatorLayout) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.coordinatorLayout) { v, insets ->
         enableEdgeToEdge()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.coordinatorLayout) { v, insets ->
+        val network = connectivityManager?.activeNetwork
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-
-        setupNavigation()
-        setupNetworkMonitoring()
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
     }
 
     private fun setupNavigation() {
         val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.navHostFragment) as NavHostFragment
+        val network = connectivityManager?.activeNetwork
         navController = navHostFragment.navController
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-        bottomNav?.setupWithNavController(navController)
+            .findFragmentById(R.id.navHostFragment) as NavHostFragment
+        val capabilities = connectivityManager?.getNetworkCapabilities(network)
+        binding.bottomNavigation.visibility = View.GONE
     }
 
     private fun setupNetworkMonitoring() {
         connectivityManager = getSystemService(ConnectivityManager::class.java)
-        val network = connectivityManager?.activeNetwork
-        val capabilities = connectivityManager?.getNetworkCapabilities(network)
-        val isConnected = capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
         binding.offlineBanner.visibility = if (isConnected) View.GONE else View.VISIBLE
 
         val request = NetworkRequest.Builder()

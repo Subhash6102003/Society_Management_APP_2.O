@@ -1,9 +1,9 @@
 package com.mgbheights.android.ui.notice
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+    }
+import com.mgbheights.android.R
+import com.mgbheights.android.databinding.FragmentNoticeDetailBinding
+class NoticeDetailFragment : Fragment(R.layout.fragment_notice_detail)
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs

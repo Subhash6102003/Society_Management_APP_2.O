@@ -1,0 +1,42 @@
+</FrameLayout>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:text="MaidMyFlatSlotsFragment" />
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvFlatSlotsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="My Flat Slots"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+    android:layout_height="match_parent">
+<?xml version="1.0" encoding="utf-8"?>
+        android:id="@+id/tvFlatSlotsEmpty"
+        android:layout_width="match_parent"
+    android:layout_width="match_parent"
+        android:layout_marginTop="8dp"
+        android:text="No slots added yet" />
+
+    <ListView
+        android:id="@+id/lvFlatSlots"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="12dp" />
+    <TextView
+    <Button
+        android:id="@+id/btnAddSlotFromList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Add Slot" />
+
+</LinearLayout>
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="MaidMyFlatSlotsFragment" />
+
+</FrameLayout>

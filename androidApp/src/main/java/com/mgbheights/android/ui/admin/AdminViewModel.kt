@@ -1,6 +1,7 @@
 package com.mgbheights.android.ui.admin
 
 import androidx.lifecycle.*
+import com.mgbheights.shared.domain.model.ApprovalStatus
 import com.mgbheights.shared.domain.model.EditRequest
 import com.mgbheights.shared.domain.model.User
 import com.mgbheights.shared.domain.repository.EditRequestRepository
@@ -67,7 +68,7 @@ class AdminViewModel @Inject constructor(
             val users = usersResult.getOrNull()!!
             _state.value = _state.value?.copy(
                 totalUsers = users.size,
-                pendingApprovals = users.count { !it.isApproved }
+                pendingApprovals = users.count { it.approvalStatus == ApprovalStatus.PENDING }
             )
         }
 
@@ -132,7 +133,8 @@ class AdminViewModel @Inject constructor(
     fun rejectUser(userId: String) {
         viewModelScope.launch {
             _actionResult.value = Resource.Loading
-            val result = userRepository.deleteUser(userId)
+            // Soft-reject: marks approval_status = REJECTED, preserves audit trail
+            val result = userRepository.rejectUser(userId)
             _actionResult.value = result
             loadAllUsers()
             loadPendingApprovals()

@@ -3,94 +3,82 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph_auth"
-    app:startDestination="@id/landingFragment">
+    app:startDestination="@id/splashFragment">
+
+    <fragment
+        android:id="@+id/splashFragment"
+        android:name="com.mgbheights.android.ui.auth.SplashFragment"
+        android:label="Splash">
+        <action
+            android:id="@+id/action_splash_to_landing"
+            app:destination="@id/landingFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/landingFragment"
         android:name="com.mgbheights.android.ui.auth.LandingFragment"
-        android:label="Landing"
-        tools:layout="@layout/fragment_landing">
+        android:label="Landing">
         <action
-            android:id="@+id/action_landing_to_login"
-            app:destination="@id/loginFragment" />
+            android:id="@+id/action_landing_to_enter_email"
+            app:destination="@id/enterEmailFragment" />
         <action
-            android:id="@+id/action_landing_to_signup_email"
-            app:destination="@id/signUpEmailFragment" />
+            android:id="@+id/action_landing_to_select_role"
+            app:destination="@id/selectRoleFragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/signUpEmailFragment"
-        android:name="com.mgbheights.android.ui.auth.SignUpEmailFragment"
-        android:label="Sign Up"
-        tools:layout="@layout/fragment_signup_email">
-        <action
-            android:id="@+id/action_to_signup_verify_otp"
-            app:destination="@id/signUpVerifyOtpFragment" />
-    </fragment>
+        android:id="@+id/enterEmailFragment"
+        android:name="com.mgbheights.android.ui.auth.EnterEmailFragment"
+        android:label="Login" />
 
     <fragment
-        android:id="@+id/signUpVerifyOtpFragment"
-        android:name="com.mgbheights.android.ui.auth.SignUpVerifyOtpFragment"
-        android:label="Verify OTP"
-        tools:layout="@layout/fragment_verify_otp">
-        <argument
-            android:name="email"
-            app:argType="string" />
-        <argument
-            android:name="flowType"
-            app:argType="string" />
-        <action
-            android:id="@+id/action_to_signup_create_pass"
-            app:destination="@id/signUpCreatePasswordFragment" />
-        <action
-            android:id="@+id/action_to_forgot_new_pass"
-            app:destination="@id/forgotPasswordNewFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/signUpCreatePasswordFragment"
-        android:name="com.mgbheights.android.ui.auth.SignUpCreatePasswordFragment"
-        android:label="Create Profile"
-        tools:layout="@layout/fragment_signup_create_password" />
-
-    <fragment
-        android:id="@+id/loginFragment"
-        android:name="com.mgbheights.android.ui.auth.LoginFragment"
-        android:label="Login"
-        tools:layout="@layout/fragment_login">
-        <action
-            android:id="@+id/action_login_to_signup_email"
-            app:destination="@id/signUpEmailFragment" />
-        <action
-            android:id="@+id/action_login_to_forgot_email"
-            app:destination="@id/forgotPasswordEmailFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/forgotPasswordEmailFragment"
-        android:name="com.mgbheights.android.ui.auth.ForgotPasswordEmailFragment"
-        android:label="Forgot Password"
-        tools:layout="@layout/fragment_forgot_password_email">
-        <action
-            android:id="@+id/action_to_forgot_verify_otp"
-            app:destination="@id/signUpVerifyOtpFragment" />
-    </fragment>
-
-    <!-- Forgot password uses the same OTP verification fragment as signup -->
-
-    <fragment
-        android:id="@+id/forgotPasswordNewFragment"
-        android:name="com.mgbheights.android.ui.auth.ForgotPasswordNewFragment"
-        android:label="New Password"
-        tools:layout="@layout/fragment_forgot_new_password">
+        android:id="@+id/selectRoleFragment"
+        android:name="com.mgbheights.android.ui.auth.SelectRoleFragment"
+        android:label="Select Role">
         <argument
             android:name="email"
             app:argType="string" />
         <action
-            android:id="@+id/action_forgot_new_pass_to_login"
-            app:destination="@id/loginFragment"
-            app:popUpTo="@id/nav_graph_auth"
-            app:popUpToInclusive="true" />
+            android:id="@+id/action_select_role_to_create_profile"
+            app:destination="@id/createProfileFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/createProfileFragment"
+        android:name="com.mgbheights.android.ui.auth.CreateProfileFragment"
+        android:label="Create Profile">
+        <argument
+            android:name="email"
+            app:argType="string" />
+        <argument
+            android:name="role"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_create_profile_to_pending"
+            app:destination="@id/pendingApprovalFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/pendingApprovalFragment"
+        android:name="com.mgbheights.android.ui.auth.PendingApprovalFragment"
+        android:label="Pending Approval">
+        <action
+            android:id="@+id/action_pending_to_landing"
+            app:destination="@id/landingFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/rejectedFragment"
+        android:name="com.mgbheights.android.ui.auth.RejectedFragment"
+        android:label="Access Denied">
+        <action
+            android:id="@+id/action_rejected_to_landing"
+            app:destination="@id/landingFragment" />
     </fragment>
 
 </navigation>
+
+
+
+
+

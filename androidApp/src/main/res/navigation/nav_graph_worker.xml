@@ -1,52 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph_worker"
     app:startDestination="@id/workerHomeFragment">
 
     <fragment
         android:id="@+id/workerHomeFragment"
-        android:name="com.mgbheights.android.ui.worker.WorkerHomeFragment"
-        android:label="Home"
-        tools:layout="@layout/fragment_worker_home" />
+        android:name="com.mgbheights.android.ui.worker.WorkerDashboardFragment">
+        <action android:id="@+id/action_worker_home_to_tasks" app:destination="@id/workerTasksFragment" />
+        <action android:id="@+id/action_worker_home_to_profile" app:destination="@id/workerProfileFragment" />
+        <action android:id="@+id/action_worker_home_to_shop" app:destination="@id/workerShopFragment" />
+        <action android:id="@+id/action_worker_home_to_settings" app:destination="@id/workerSettingsFragment" />
+    </fragment>
+
+    <fragment android:id="@+id/workerDashboardFragment" android:name="com.mgbheights.android.ui.worker.WorkerDashboardFragment" />
 
     <fragment
         android:id="@+id/workerTasksFragment"
-        android:name="com.mgbheights.android.ui.worker.WorkerTasksFragment"
-        android:label="Tasks"
-        tools:layout="@layout/fragment_worker_tasks">
-        <action
-            android:id="@+id/action_workerTasks_to_workerTaskDetail"
-            app:destination="@id/workerTaskDetailFragment" />
+        android:name="com.mgbheights.android.ui.worker.WorkerBookingsFragment">
+        <action android:id="@+id/action_worker_tasks_to_detail" app:destination="@id/workerBookingDetailFragment" />
     </fragment>
 
-    <fragment
-        android:id="@+id/workerTaskDetailFragment"
-        android:name="com.mgbheights.android.ui.worker.WorkerTaskDetailFragment"
-        android:label="Task Detail"
-        tools:layout="@layout/fragment_worker_task_detail">
-        <argument
-            android:name="taskId"
-            app:argType="string" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/workerBookingsFragment"
-        android:name="com.mgbheights.android.ui.worker.WorkerBookingsFragment"
-        android:label="Booking Requests"
-        tools:layout="@layout/fragment_worker_bookings" />
+    <fragment android:id="@+id/workerBookingsFragment" android:name="com.mgbheights.android.ui.worker.WorkerBookingsFragment" />
+    <fragment android:id="@+id/workerBookingDetailFragment" android:name="com.mgbheights.android.ui.worker.WorkerBookingDetailFragment" />
+    <fragment android:id="@+id/workerShopFragment" android:name="com.mgbheights.android.ui.worker.WorkerShopFragment" />
 
     <fragment
         android:id="@+id/workerProfileFragment"
-        android:name="com.mgbheights.android.ui.worker.WorkerProfileFragment"
-        android:label="Profile"
-        tools:layout="@layout/fragment_worker_profile" />
+        android:name="com.mgbheights.android.ui.worker.WorkerProfileFragment">
+        <action android:id="@+id/action_worker_profile_to_settings" app:destination="@id/workerSettingsFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/workerSettingsFragment"
-        android:name="com.mgbheights.android.ui.worker.WorkerSettingsFragment"
-        android:label="Settings"
-        tools:layout="@layout/fragment_worker_settings" />
+        android:name="com.mgbheights.android.ui.worker.WorkerSettingsFragment">
+        <action android:id="@+id/action_worker_settings_to_profile" app:destination="@id/workerProfileFragment" />
+    </fragment>
 
 </navigation>
+

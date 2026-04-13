@@ -1,3 +1,4 @@
+import com.mgbheights.android.ui.auth.LoginActivity
 package com.mgbheights.android.ui.guard
 
 import android.content.Intent
@@ -11,10 +12,9 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.firebase.auth.FirebaseAuth
+import com.mgbheights.android.MainActivity
 import com.google.firebase.firestore.FirebaseFirestore
-import com.mgbheights.android.R
 import com.mgbheights.android.databinding.ActivityGuardBinding
-import com.mgbheights.android.ui.auth.AuthActivity
 
 class GuardActivity : AppCompatActivity() {
 
@@ -30,14 +30,14 @@ class GuardActivity : AppCompatActivity() {
 
         val navController = findNavController(R.id.navHostFragment)
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.guardHomeFragment), 
+            setOf(R.id.guardHomeFragment, R.id.guardVisitorLogFragment, R.id.guardProfileFragment), 
             binding.drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         binding.navigationView.setupWithNavController(navController)
 
         binding.navigationView.setNavigationItemSelectedListener { item ->
-            if (item.itemId == R.id.nav_guard_logout) {
+            if (item.itemId == R.id.nav_logout) {
                 logout()
                 true
             } else {
@@ -54,16 +54,16 @@ class GuardActivity : AppCompatActivity() {
 
     private fun updateNavHeader() {
         val headerView = binding.navigationView.getHeaderView(0)
-        val tvName = headerView.findViewById<TextView>(R.id.tvGuardName)
-        val tvEmail = headerView.findViewById<TextView>(R.id.tvGuardEmail)
+        val tvName = headerView.findViewById<TextView>(R.id.tvGuardName) ?: headerView.findViewById(R.id.tvName)
+        val tvEmail = headerView.findViewById<TextView>(R.id.tvGuardEmail) ?: headerView.findViewById(R.id.tvEmail)
 
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
-            tvEmail.text = user.email
+            tvEmail?.text = user.email
             FirebaseFirestore.getInstance().collection("guards").document(user.uid).get()
                 .addOnSuccessListener { doc ->
                     if (doc.exists()) {
-                        tvName.text = doc.getString("name")
+                        tvName?.text = doc.getString("name")
                     }
                 }
         }
@@ -75,8 +75,8 @@ class GuardActivity : AppCompatActivity() {
     }
 
     fun logout() {
-        FirebaseAuth.getInstance().signOut()
-        val intent = Intent(this, AuthActivity::class.java)
+        val intent = Intent(this, LoginActivity::class.java)
+        val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finishAffinity()

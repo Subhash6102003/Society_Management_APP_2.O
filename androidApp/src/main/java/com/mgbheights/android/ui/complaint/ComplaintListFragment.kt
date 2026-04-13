@@ -1,9 +1,9 @@
-package com.mgbheights.android.ui.complaint
-
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import com.mgbheights.android.databinding.FragmentComplaintListBinding
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        super.onViewCreated(view, savedInstanceState)
+        }
+        if (binding.tabLayout.tabCount == 0) {
+class ComplaintListFragment : Fragment(R.layout.fragment_complaint_list)
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -46,7 +46,9 @@ class ComplaintListFragment : Fragment() {
         }
 
         val tabs = listOf("All", "Open", "In Progress", "Resolved")
-        tabs.forEach { binding.tabLayout.addTab(binding.tabLayout.newTab().setText(it)) }
+        if (binding.tabLayout.tabCount == 0) {
+            tabs.forEach { binding.tabLayout.addTab(binding.tabLayout.newTab().setText(it)) }
+        }
 
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {

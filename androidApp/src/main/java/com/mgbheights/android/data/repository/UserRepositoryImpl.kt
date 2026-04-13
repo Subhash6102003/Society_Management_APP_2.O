@@ -1,150 +1,141 @@
 package com.mgbheights.android.data.repository
 
-import com.google.firebase.firestore.FirebaseFirestore
-import com.mgbheights.android.data.mapper.*
+import com.mgbheights.android.data.remote.dto.UserDto
+import com.mgbheights.android.data.remote.dto.toDto
+import com.mgbheights.android.data.remote.dto.toUser
 import com.mgbheights.shared.domain.model.User
 import com.mgbheights.shared.domain.model.UserRole
 import com.mgbheights.shared.domain.repository.UserRepository
 import com.mgbheights.shared.util.Constants
 import com.mgbheights.shared.util.Resource
-import kotlinx.coroutines.channels.awaitClose
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class UserRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val supabase: SupabaseClient
 ) : UserRepository {
 
-    private val usersRef = firestore.collection(Constants.COLLECTION_USERS)
-
     override suspend fun getUserById(userId: String): Resource<User> = try {
-        val doc = usersRef.document(userId).get().await()
-        if (doc.exists()) {
-            val user = doc.data!!.toUser().copy(id = doc.id)
-            Resource.success(user)
-        } else Resource.error("User not found")
-    } catch (e: Exception) {
-        Resource.error(e.message ?: "Failed to fetch user", e)
-    }
+        val dto = supabase.from(Constants.COLLECTION_USERS)
+            .select { filter { eq("id", userId) } }
+            .decodeSingleOrNull<UserDto>()
+            ?: return Resource.error("User not found")
+        Resource.success(dto.toUser())
+    } catch (e: Exception) { Resource.error(e.message ?: "Failed to fetch user", e) }
 
     override suspend fun getUserByPhone(phoneNumber: String): Resource<User> = try {
-        val snap = usersRef.whereEqualTo("phoneNumber", phoneNumber).limit(1).get().await()
-        if (snap.documents.isNotEmpty()) {
-            val doc = snap.documents[0]
-            Resource.success(doc.data!!.toUser().copy(id = doc.id))
-        } else Resource.error("User not found")
+        val dto = supabase.from(Constants.COLLECTION_USERS)
+            .select { filter { eq("phone_number", phoneNumber) } }
+            .decodeSingleOrNull<UserDto>()
+            ?: return Resource.error("User not found")
+        Resource.success(dto.toUser())
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
     override suspend fun getUserByEmail(email: String): Resource<User> = try {
-        val snap = usersRef.whereEqualTo("email", email).limit(1).get().await()
-        if (snap.documents.isNotEmpty()) {
-            val doc = snap.documents[0]
-            Resource.success(doc.data!!.toUser().copy(id = doc.id))
-        } else Resource.error("User not found")
+        val dto = supabase.from(Constants.COLLECTION_USERS)
+            .select { filter { eq("email", email) } }
+            .decodeSingleOrNull<UserDto>()
+            ?: return Resource.error("User not found")
+        Resource.success(dto.toUser())
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
-    override fun observeUser(userId: String): Flow<Resource<User>> = callbackFlow {
-        val listener = usersRef.document(userId).addSnapshotListener { snap, error ->
-            if (error != null) { trySend(Resource.error(error.message ?: "Error")); return@addSnapshotListener }
-            if (snap != null && snap.exists()) {
-                val user = snap.data!!.toUser().copy(id = snap.id)
-                trySend(Resource.success(user))
-            } else trySend(Resource.error("User not found"))
-        }
-        awaitClose { listener.remove() }
+    override fun observeUser(userId: String): Flow<Resource<User>> = flow {
+        emit(getUserById(userId))
     }
 
     override suspend fun createUser(user: User): Resource<User> = try {
-        val data = user.toFirestoreMap()
-        usersRef.document(user.id).set(data).await()
+        supabase.from(Constants.COLLECTION_USERS).insert(user.toDto())
         Resource.success(user)
     } catch (e: Exception) { Resource.error(e.message ?: "Failed to create user", e) }
 
     override suspend fun updateUser(user: User): Resource<User> = try {
         val updated = user.copy(updatedAt = System.currentTimeMillis())
-        usersRef.document(user.id).set(updated.toFirestoreMap()).await()
+        supabase.from(Constants.COLLECTION_USERS).update(updated.toDto()) {
+            filter { eq("id", user.id) }
+        }
         Resource.success(updated)
     } catch (e: Exception) { Resource.error(e.message ?: "Failed to update user", e) }
 
     override suspend fun updateProfilePhoto(userId: String, photoUrl: String): Resource<Unit> = try {
-        usersRef.document(userId).update("profilePhotoUrl", photoUrl, "updatedAt", System.currentTimeMillis()).await()
+        supabase.from(Constants.COLLECTION_USERS).update(
+            mapOf("profile_photo_url" to photoUrl, "updated_at" to System.currentTimeMillis())
+        ) { filter { eq("id", userId) } }
         Resource.success(Unit)
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
     override suspend fun approveUser(userId: String): Resource<Unit> = try {
-        usersRef.document(userId).update("isApproved", true, "updatedAt", System.currentTimeMillis()).await()
+        supabase.from(Constants.COLLECTION_USERS).update(
+            mapOf("approval_status" to "APPROVED", "updated_at" to System.currentTimeMillis())
+        ) { filter { eq("id", userId) } }
+        Resource.success(Unit)
+    } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
+
+    override suspend fun rejectUser(userId: String): Resource<Unit> = try {
+        supabase.from(Constants.COLLECTION_USERS).update(
+            mapOf("approval_status" to "REJECTED", "updated_at" to System.currentTimeMillis())
+        ) { filter { eq("id", userId) } }
         Resource.success(Unit)
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
     override suspend fun blockUser(userId: String): Resource<Unit> = try {
-        usersRef.document(userId).update("isBlocked", true, "updatedAt", System.currentTimeMillis()).await()
+        supabase.from(Constants.COLLECTION_USERS).update(
+            mapOf("is_blocked" to true, "updated_at" to System.currentTimeMillis())
+        ) { filter { eq("id", userId) } }
         Resource.success(Unit)
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
     override suspend fun unblockUser(userId: String): Resource<Unit> = try {
-        usersRef.document(userId).update("isBlocked", false, "updatedAt", System.currentTimeMillis()).await()
+        supabase.from(Constants.COLLECTION_USERS).update(
+            mapOf("is_blocked" to false, "updated_at" to System.currentTimeMillis())
+        ) { filter { eq("id", userId) } }
         Resource.success(Unit)
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
     override suspend fun deleteUser(userId: String): Resource<Unit> = try {
-        usersRef.document(userId).delete().await()
+        supabase.from(Constants.COLLECTION_USERS).delete { filter { eq("id", userId) } }
         Resource.success(Unit)
     } catch (e: Exception) { Resource.error(e.message ?: "Failed to delete user", e) }
 
     override suspend fun getUsersByRole(role: UserRole): Resource<List<User>> = try {
-        val snap = usersRef.whereEqualTo("role", role.name).get().await()
-        val users = snap.documents.mapNotNull { it.data?.toUser()?.copy(id = it.id) }
-        Resource.success(users)
-    } catch (e: Exception) {
-        Resource.error(e.message ?: "Error", e)
-    }
+        val dtos = supabase.from(Constants.COLLECTION_USERS)
+            .select { filter { eq("role", role.name) } }
+            .decodeList<UserDto>()
+        Resource.success(dtos.map { it.toUser() })
+    } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
-    override fun observeUsersByRole(role: UserRole): Flow<Resource<List<User>>> = callbackFlow {
-        val listener = usersRef.whereEqualTo("role", role.name).addSnapshotListener { snap, error ->
-            if (error != null) { trySend(Resource.error(error.message ?: "Error")); return@addSnapshotListener }
-            val users = snap?.documents?.mapNotNull { it.data?.toUser()?.copy(id = it.id) } ?: emptyList()
-            trySend(Resource.success(users))
-        }
-        awaitClose { listener.remove() }
+    override fun observeUsersByRole(role: UserRole): Flow<Resource<List<User>>> = flow {
+        emit(getUsersByRole(role))
     }
 
     override suspend fun getPendingApprovals(): Resource<List<User>> = try {
-        val snap = usersRef.whereEqualTo("isApproved", false).get().await()
-        Resource.success(snap.documents.mapNotNull { it.data?.toUser()?.copy(id = it.id) })
+        val dtos = supabase.from(Constants.COLLECTION_USERS)
+            .select { filter { eq("approval_status", "PENDING") } }
+            .decodeList<UserDto>()
+        Resource.success(dtos.map { it.toUser() })
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
-    override fun observePendingApprovals(): Flow<Resource<List<User>>> = callbackFlow {
-        val listener = usersRef.whereEqualTo("isApproved", false).addSnapshotListener { snap, error ->
-            if (error != null) { trySend(Resource.error(error.message ?: "Error")); return@addSnapshotListener }
-            val users = snap?.documents?.mapNotNull { it.data?.toUser()?.copy(id = it.id) } ?: emptyList()
-            trySend(Resource.success(users))
-        }
-        awaitClose { listener.remove() }
+    override fun observePendingApprovals(): Flow<Resource<List<User>>> = flow {
+        emit(getPendingApprovals())
     }
 
     override suspend fun getTenantsByResident(residentId: String): Resource<List<User>> = try {
-        val snap = usersRef.whereEqualTo("tenantOf", residentId).get().await()
-        Resource.success(snap.documents.mapNotNull { it.data?.toUser()?.copy(id = it.id) })
+        val dtos = supabase.from(Constants.COLLECTION_USERS)
+            .select { filter { eq("tenant_of", residentId) } }
+            .decodeList<UserDto>()
+        Resource.success(dtos.map { it.toUser() })
     } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
     override suspend fun getAllUsers(): Resource<List<User>> = try {
-        val snap = usersRef.get().await()
-        val users = snap.documents.mapNotNull { it.data?.toUser()?.copy(id = it.id) }
-        Resource.success(users)
-    } catch (e: Exception) {
-        Resource.error(e.message ?: "Error", e)
-    }
+        val dtos = supabase.from(Constants.COLLECTION_USERS).select().decodeList<UserDto>()
+        Resource.success(dtos.map { it.toUser() })
+    } catch (e: Exception) { Resource.error(e.message ?: "Error", e) }
 
-    override fun observeAllUsers(): Flow<Resource<List<User>>> = callbackFlow {
-        val listener = usersRef.addSnapshotListener { snap, error ->
-            if (error != null) { trySend(Resource.error(error.message ?: "Error")); return@addSnapshotListener }
-            val users = snap?.documents?.mapNotNull { it.data?.toUser()?.copy(id = it.id) } ?: emptyList()
-            trySend(Resource.success(users))
-        }
-        awaitClose { listener.remove() }
+    override fun observeAllUsers(): Flow<Resource<List<User>>> = flow {
+        emit(getAllUsers())
     }
 }

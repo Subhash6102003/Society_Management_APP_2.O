@@ -1,82 +1,88 @@
-package com.mgbheights.android.ui.auth
+﻿package com.mgbheights.android.ui.auth
 
 import android.os.Bundle
-import android.util.Patterns
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
-import com.google.firebase.Timestamp
-import com.google.firebase.firestore.FirebaseFirestore
-import com.mgbheights.android.databinding.FragmentEnterEmailBinding
-import java.util.Date
-import kotlin.random.Random
+import com.mgbheights.android.R
+import com.mgbheights.shared.domain.model.ApprovalStatus
+import com.mgbheights.shared.domain.model.UserRole
+import com.mgbheights.shared.util.Resource
+import dagger.hilt.android.AndroidEntryPoint
 
-class EnterEmailFragment : Fragment() {
+@AndroidEntryPoint
+class EnterEmailFragment : Fragment(R.layout.fragment_enter_email) {
 
-    private var _binding: FragmentEnterEmailBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentEnterEmailBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    private val authViewModel: AuthViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.btnSendOtp.setOnClickListener {
-            val email = binding.etEmail.text.toString().trim()
-            if (validateEmail(email)) {
-                sendOtp(email)
+        val etEmail = view.findViewById<EditText>(R.id.etEmail)
+        val etPassword = view.findViewById<EditText>(R.id.etPassword)
+        val btnLogin = view.findViewById<Button>(R.id.btnLogin)
+        val progressBar = view.findViewById<ProgressBar>(R.id.progressBar)
+
+        btnLogin.setOnClickListener {
+            val email = etEmail.text.toString().trim()
+            val password = etPassword.text.toString().trim()
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(requireContext(), "Please enter email and password", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            authViewModel.loginWithEmail(email, password)
+        }
+
+        authViewModel.loginState.observe(viewLifecycleOwner) { resource ->
+            when (resource) {
+                is Resource.Loading -> {
+                    progressBar.visibility = View.VISIBLE
+                    btnLogin.isEnabled = false
+                }
+                is Resource.Success -> {
+                    progressBar.visibility = View.GONE
+                    btnLogin.isEnabled = true
+                    routeByApprovalAndRole(
+                        resource.data.approvalStatus,
+                        resource.data.role
+                    )
+                }
+                is Resource.Error -> {
+                    progressBar.visibility = View.GONE
+                    btnLogin.isEnabled = true
+                    // Translate internal codes to user-friendly messages
+                    val message = when {
+                        resource.message.startsWith("ACCESS_DENIED:") ->
+                            "Access denied. Your account has been rejected. Contact admin."
+                        else -> resource.message
+                    }
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
 
-    private fun validateEmail(email: String): Boolean {
-        return if (email.isNotEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            true
-        } else {
-            binding.tilEmail.error = "Invalid email address"
-            false
+    private fun routeByApprovalAndRole(status: ApprovalStatus, role: UserRole) {
+        val options = NavOptions.Builder()
+            .setPopUpTo(R.id.nav_graph_main, true)
+            .build()
+        val destination = when (status) {
+            ApprovalStatus.PENDING -> R.id.pendingApprovalFragment
+            ApprovalStatus.REJECTED -> R.id.rejectedFragment
+            ApprovalStatus.APPROVED -> when (role) {
+                UserRole.ADMIN -> R.id.adminDashboardFragment
+                UserRole.RESIDENT -> R.id.residentHomeFragment
+                UserRole.TENANT -> R.id.tenantHomeFragment
+                UserRole.SECURITY_GUARD, UserRole.SECURITY_GUARD_WORKER -> R.id.guardDashboardFragment
+                UserRole.WORKER -> R.id.workerDashboardFragment
+            }
         }
-    }
-
-    private fun sendOtp(email: String) {
-        binding.progressBar.visibility = View.VISIBLE
-        binding.btnSendOtp.isEnabled = false
-
-        val otp = (100000 + Random.nextInt(900000)).toString()
-        val expiresAt = Date(System.currentTimeMillis() + 5 * 60 * 1000) // 5 minutes
-
-        val otpData = hashMapOf(
-            "code" to otp,
-            "expiresAt" to Timestamp(expiresAt),
-            "verified" to false
-        )
-
-        val db = FirebaseFirestore.getInstance()
-        db.collection("otpCodes").document(email).set(otpData)
-            .addOnSuccessListener {
-                // In a real scenario, the Firebase Trigger Email extension would pick this up
-                // or you'd call an API here. For now, we assume it's sent.
-                binding.progressBar.visibility = View.GONE
-                binding.btnSendOtp.isEnabled = true
-                
-                val action = EnterEmailFragmentDirections.actionEnterEmailFragmentToOtpVerifyFragment(email)
-                findNavController().navigate(action)
-            }
-            .addOnFailureListener { e ->
-                binding.progressBar.visibility = View.GONE
-                binding.btnSendOtp.isEnabled = true
-                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+        findNavController().navigate(destination, null, options)
     }
 }

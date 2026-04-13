@@ -21,10 +21,10 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE role = :role")
     fun observeUsersByRole(role: String): Flow<List<UserEntity>>
 
-    @Query("SELECT * FROM users WHERE isApproved = 0")
+    @Query("SELECT * FROM users WHERE approvalStatus = 'PENDING'")
     suspend fun getPendingApprovals(): List<UserEntity>
 
-    @Query("SELECT * FROM users WHERE isApproved = 0")
+    @Query("SELECT * FROM users WHERE approvalStatus = 'PENDING'")
     fun observePendingApprovals(): Flow<List<UserEntity>>
 
     @Query("SELECT * FROM users WHERE tenantOf = :residentId")

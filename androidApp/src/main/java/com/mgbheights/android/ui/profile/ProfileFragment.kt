@@ -1,23 +1,26 @@
 package com.mgbheights.android.ui.profile
+                .setTitle("Logout")
+                if (photoBase64.isNotEmpty()) {
+        // Edit profile button
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.mgbheights.android.R
-import com.mgbheights.android.databinding.FragmentProfileBinding
-import com.mgbheights.android.util.CameraHelper
-import com.mgbheights.android.util.PhotoCompressor
-import com.mgbheights.shared.domain.model.UserRole
-import com.mgbheights.shared.util.DateTimeUtil
-import com.mgbheights.shared.util.Resource
-import dagger.hilt.android.AndroidEntryPoint
+class ProfileFragment : Fragment(R.layout.fragment_profile)
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        binding.fabChangePhoto.setOnClickListener { cameraHelper.showPhotoPicker() }
+import androidx.navigation.NavOptions
+        binding.btnEditProfile.setOnClickListener { findNavController().navigate(R.id.action_profile_to_editProfile) }
+                    // We can add a field in the UI for this or use it in other places
+                    PhotoCompressor.loadPhotoIntoView(
+                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
+import com.mgbheights.app.utils.ImageUtils
+                }
+                    val isStaffRole = user.role == UserRole.WORKER ||
+                            user.role == UserRole.SECURITY_GUARD ||
+                        user.profilePhotoUrl,
+                    binding.tvEmail.text = user.email.ifBlank { "Not set" }
+                    }
+                    // Show account creation date (Fix for 1970 issue - using shared utility)
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
@@ -27,24 +30,64 @@ class ProfileFragment : Fragment() {
     private val viewModel: ProfileViewModel by viewModels()
     private lateinit var cameraHelper: CameraHelper
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        // Load user data
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(uid)
+            .get()
+            .addOnSuccessListener { doc ->
+                if (!doc.exists()) return@addOnSuccessListener
+import androidx.fragment.app.Fragment
+                binding.tvName.text          = doc.getString("name") ?: ""
+                binding.tvEmail.text         = doc.getString("email") ?: ""
+                binding.tvPhone.text         = doc.getString("phone") ?: ""
+                binding.tvBuilding.text      = doc.getString("buildingNumber") ?: ""
+                binding.tvFlat.text          = doc.getString("flatNumber") ?: ""
+import com.mgbheights.android.R
+                // Load profile photo from Base64
+                val photoBase64 = doc.getString("profilePhotoBase64") ?: ""
+                if (photoBase64.isNotEmpty()) {
+                    val bitmap = ImageUtils.base64ToBitmap(photoBase64)
+                    bitmap?.let { binding.ivProfilePhoto.setImageBitmap(it) }
+@AndroidEntryPoint
+    private val binding get() = _binding!!
+    private lateinit var cameraHelper: CameraHelper
+        // Edit profile button
+        binding.btnEditProfile.setOnClickListener {
+            // Navigate to edit profile using correct action ID
+            findNavController().navigate(R.id.action_profile_to_edit)
+        savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
-
-        cameraHelper = CameraHelper(this) { uri ->
-            val base64 = PhotoCompressor.compressProfilePhoto(requireContext(), uri)
-            if (base64 != null) {
-                PhotoCompressor.loadPhotoIntoView(binding.ivProfilePhoto, base64, R.drawable.ic_profile)
-                viewModel.updateProfilePhoto(base64)
-                Toast.makeText(requireContext(), "Profile photo updated!", Toast.LENGTH_SHORT).show()
-            }
-        }
-
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        cameraHelper = CameraHelper(this) { uri ->
+            val base64 = PhotoCompressor.compressProfilePhoto(requireContext(), uri)
+            if (base64 != null) {
+                PhotoCompressor.loadPhotoIntoView(binding.ivProfilePhoto, base64, R.drawable.ic_profile)
+            }
+        }
+        cameraHelper = CameraHelper(this) { uri ->
+        // Logout button
+            val base64 = PhotoCompressor.compressProfilePhoto(requireContext(), uri)
+            FirebaseAuth.getInstance().signOut()
+            // Navigate to enterEmailFragment and clear back stack
+            val navOptions = NavOptions.Builder()
+                .setPopUpTo(R.id.nav_graph_auth, true)
+                .build()
+    override fun onDestroyView() { super.onDestroyView(); _binding = null }
+        super.onViewCreated(view, savedInstanceState)
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
         viewModel.user.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is Resource.Loading -> { }
@@ -64,7 +107,7 @@ class ProfileFragment : Fragment() {
 
                     // Show account creation date (Fix for 1970 issue - using shared utility)
                     // We can add a field in the UI for this or use it in other places
-                    
+
                     val isStaffRole = user.role == UserRole.WORKER ||
                             user.role == UserRole.SECURITY_GUARD ||
                             user.role == UserRole.SECURITY_GUARD_WORKER
@@ -98,5 +141,8 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    override fun onDestroyView() { super.onDestroyView(); _binding = null }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

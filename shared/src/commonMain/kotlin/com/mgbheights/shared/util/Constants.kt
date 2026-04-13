@@ -8,7 +8,7 @@ object Constants {
     // Admin
     const val ADMIN_DEFAULT_EMAIL = "admin@mgbheights.com"
 
-    // Firestore Collections
+    // Supabase Tables
     const val COLLECTION_USERS = "users"
     const val COLLECTION_FLATS = "flats"
     const val COLLECTION_MAINTENANCE_BILLS = "maintenance_bills"
@@ -22,22 +22,13 @@ object Constants {
     const val COLLECTION_AUDIT_LOGS = "audit_logs"
     const val COLLECTION_EDIT_REQUESTS = "edit_requests"
 
-    // Firebase Storage Paths
+    // Supabase Storage Buckets
     const val STORAGE_PROFILE_PHOTOS = "profile_photos"
     const val STORAGE_VISITOR_PHOTOS = "visitor_photos"
     const val STORAGE_ID_PROOFS = "id_proofs"
     const val STORAGE_NOTICE_IMAGES = "notice_images"
     const val STORAGE_COMPLAINT_IMAGES = "complaint_images"
     const val STORAGE_RECEIPTS = "receipts"
-
-    // FCM Topics
-    const val TOPIC_ALL = "all"
-    const val TOPIC_ADMIN = "admin"
-    const val TOPIC_RESIDENTS = "residents"
-    const val TOPIC_TENANTS = "tenants"
-    const val TOPIC_GUARDS = "guards"
-    const val TOPIC_WORKERS = "workers"
-    const val TOPIC_EMERGENCY = "emergency"
 
     // Pagination
     const val PAGE_SIZE = 20
@@ -58,7 +49,6 @@ object Constants {
     const val MIN_NAME_LENGTH = 2
     const val MAX_NAME_LENGTH = 100
     const val PHONE_NUMBER_LENGTH = 10
-    const val OTP_LENGTH = 6
     const val MIN_PASSWORD_LENGTH = 6
     const val MAX_COMPLAINT_DESCRIPTION_LENGTH = 1000
     const val MAX_NOTICE_BODY_LENGTH = 5000

@@ -1,8 +1,8 @@
+import com.mgbheights.android.ui.auth.AuthActivity
 package com.mgbheights.android.ui.admin
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.MenuItem
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
@@ -12,11 +12,9 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.firebase.auth.FirebaseAuth
+import com.mgbheights.android.MainActivity
 import com.google.firebase.firestore.FirebaseFirestore
-import com.mgbheights.android.R
 import com.mgbheights.android.databinding.ActivityAdminBinding
-import com.mgbheights.android.ui.auth.LoginActivity
-import com.mgbheights.android.util.GlideApp // Assuming GlideApp is generated or just use Glide
 
 class AdminActivity : AppCompatActivity() {
 
@@ -62,16 +60,14 @@ class AdminActivity : AppCompatActivity() {
         val headerView = binding.navigationView.getHeaderView(0)
         val tvName = headerView.findViewById<TextView>(R.id.tvAdminName)
         val tvEmail = headerView.findViewById<TextView>(R.id.tvAdminEmail)
-        val ivProfile = headerView.findViewById<de.hdodenhof.circleimageview.CircleImageView>(R.id.ivAdminProfile)
 
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
             tvEmail.text = user.email
-            FirebaseFirestore.getInstance().collection("admins").document(user.uid).get()
+            FirebaseFirestore.getInstance().collection("users").document(user.uid).get()
                 .addOnSuccessListener { doc ->
                     if (doc.exists()) {
                         tvName.text = doc.getString("name")
-                        // Load image with Glide if needed
                     }
                 }
         }
@@ -83,8 +79,8 @@ class AdminActivity : AppCompatActivity() {
     }
 
     fun logout() {
-        FirebaseAuth.getInstance().signOut()
-        val intent = Intent(this, LoginActivity::class.java)
+        val intent = Intent(this, AuthActivity::class.java)
+        val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finishAffinity()

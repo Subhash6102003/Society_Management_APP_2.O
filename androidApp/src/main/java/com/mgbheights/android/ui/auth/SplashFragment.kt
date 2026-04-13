@@ -1,72 +1,60 @@
-package com.mgbheights.android.ui.auth
+﻿package com.mgbheights.android.ui.auth
 
-import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.activityViewModels
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.mgbheights.android.R
-import com.mgbheights.android.ui.admin.AdminActivity
-import com.mgbheights.android.ui.guard.GuardActivity
-import com.mgbheights.android.ui.resident.ResidentActivity
-import com.mgbheights.android.ui.tenant.TenantActivity
-import com.mgbheights.android.ui.worker.WorkerActivity
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.mgbheights.shared.domain.model.ApprovalStatus
+import com.mgbheights.shared.domain.model.User
+import com.mgbheights.shared.domain.model.UserRole
+import com.mgbheights.shared.util.Resource
+import dagger.hilt.android.AndroidEntryPoint
 
-class SplashFragment : Fragment() {
+@AndroidEntryPoint
+class SplashFragment : Fragment(R.layout.fragment_splash) {
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_splash, container, false)
-    }
+    private val authViewModel: AuthViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        lifecycleScope.launch {
-            delay(2000)
-            checkAuthAndNavigate()
+        authViewModel.isLoggedIn.observe(viewLifecycleOwner) { loggedIn ->
+            if (loggedIn == false) {
+                goTo(R.id.landingFragment)
+            }
+        }
+
+        authViewModel.currentUser.observe(viewLifecycleOwner) { resource ->
+            when (resource) {
+                is Resource.Success -> routeByApprovalAndRole(resource.data)
+                is Resource.Error -> goTo(R.id.landingFragment)
+                else -> { /* loading — wait */ }
+            }
         }
     }
 
-    private fun checkAuthAndNavigate() {
-        val user = FirebaseAuth.getInstance().currentUser
-        if (user == null) {
-            findNavController().navigate(R.id.action_splashFragment_to_enterEmailFragment)
-        } else {
-            val db = FirebaseFirestore.getInstance()
-            db.collection("users").document(user.uid).get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        val role = document.getString("userType") ?: "resident"
-                        navigateToHome(role)
-                    } else {
-                        // Profile not created yet
-                        findNavController().navigate(R.id.action_splashFragment_to_enterEmailFragment)
-                    }
-                }
-                .addOnFailureListener {
-                    findNavController().navigate(R.id.action_splashFragment_to_enterEmailFragment)
-                }
+    private fun routeByApprovalAndRole(user: User) {
+        val destination = when (user.approvalStatus) {
+            ApprovalStatus.PENDING -> R.id.pendingApprovalFragment
+            ApprovalStatus.REJECTED -> R.id.rejectedFragment
+            ApprovalStatus.APPROVED -> when (user.role) {
+                UserRole.ADMIN -> R.id.adminDashboardFragment
+                UserRole.RESIDENT -> R.id.residentHomeFragment
+                UserRole.TENANT -> R.id.tenantHomeFragment
+                UserRole.SECURITY_GUARD, UserRole.SECURITY_GUARD_WORKER -> R.id.guardDashboardFragment
+                UserRole.WORKER -> R.id.workerDashboardFragment
+            }
         }
+        goTo(destination)
     }
 
-    private fun navigateToHome(role: String) {
-        val activityClass = when (role.lowercase()) {
-            "admin" -> AdminActivity::class.java
-            "guard" -> GuardActivity::class.java
-            "tenant" -> TenantActivity::class.java
-            "worker" -> WorkerActivity::class.java
-            else -> ResidentActivity::class.java
-        }
-        val intent = Intent(requireContext(), activityClass)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        requireActivity().finish()
+    private fun goTo(destination: Int) {
+        val options = NavOptions.Builder()
+            .setPopUpTo(R.id.nav_graph_main, true)
+            .build()
+        findNavController().navigate(destination, null, options)
     }
 }

@@ -1,96 +1,115 @@
 package com.mgbheights.android.data.repository
 
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
-import com.mgbheights.android.data.mapper.toFirestoreMap
-import com.mgbheights.android.data.mapper.toUser
+import com.mgbheights.android.data.remote.dto.UserDto
+import com.mgbheights.android.data.remote.dto.toDto
+import com.mgbheights.android.data.remote.dto.toUser
+import com.mgbheights.shared.domain.model.ApprovalStatus
 import com.mgbheights.shared.domain.model.User
 import com.mgbheights.shared.domain.model.UserRole
 import com.mgbheights.shared.domain.repository.AuthRepository
 import com.mgbheights.shared.util.Constants
 import com.mgbheights.shared.util.Resource
-import kotlinx.coroutines.channels.awaitClose
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.status.SessionStatus
+import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
-    private val firebaseAuth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val supabase: SupabaseClient
 ) : AuthRepository {
 
     override suspend fun loginWithEmail(email: String, password: String): Resource<User> {
         return try {
-            val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
-            val firebaseUser = authResult.user ?: return Resource.error("Authentication failed")
-
-            val doc = firestore.collection(Constants.COLLECTION_USERS)
-                .document(firebaseUser.uid)
-                .get()
-                .await()
-
-            if (doc.exists()) {
-                val data = doc.data ?: return Resource.error("User data is null")
-                var user = data.toUser().copy(id = firebaseUser.uid)
-
-                val isAdminEmail = (firebaseUser.email ?: email).equals(Constants.ADMIN_DEFAULT_EMAIL, ignoreCase = true)
-
-                if (isAdminEmail && (user.role != UserRole.ADMIN || !user.isApproved)) {
-                    user = user.copy(
-                        role = UserRole.ADMIN,
-                        isApproved = true,
-                        isProfileComplete = true
-                    )
-                    firestore.collection(Constants.COLLECTION_USERS)
-                        .document(firebaseUser.uid)
-                        .set(
-                            mapOf(
-                                "role" to "ADMIN",
-                                "isApproved" to true,
-                                "isProfileComplete" to true,
-                                "updatedAt" to System.currentTimeMillis()
-                            ),
-                            SetOptions.merge()
-                        )
-                        .await()
-                }
-
-                Resource.success(user)
-            } else {
-                firebaseAuth.signOut()
-                Resource.error("Your account has been removed or not fully registered. Please contact the administrator.")
+            supabase.auth.signInWith(Email) {
+                this.email = email
+                this.password = password
             }
+            val uid = supabase.auth.currentUserOrNull()?.id
+                ?: return Resource.error("Authentication failed")
+
+            val dto = supabase.from(Constants.COLLECTION_USERS)
+                .select { filter { eq("id", uid) } }
+                .decodeSingleOrNull<UserDto>()
+                ?: return Resource.error("Your account has not been set up. Please contact the administrator.")
+
+            var user = dto.toUser()
+
+            // Auto-promote the designated admin email
+            if (email.equals(Constants.ADMIN_DEFAULT_EMAIL, ignoreCase = true) &&
+                (user.role != UserRole.ADMIN || user.approvalStatus != ApprovalStatus.APPROVED)
+            ) {
+                val promoted = user.copy(
+                    role = UserRole.ADMIN,
+                    approvalStatus = ApprovalStatus.APPROVED,
+                    isProfileComplete = true
+                )
+                supabase.from(Constants.COLLECTION_USERS).update(promoted.toDto()) {
+                    filter { eq("id", uid) }
+                }
+                user = promoted
+            }
+
+            // Enforce approval gate
+            when (user.approvalStatus) {
+                ApprovalStatus.REJECTED -> {
+                    supabase.auth.signOut()
+                    return Resource.error("ACCESS_DENIED: Your account has been rejected. Contact the administrator.")
+                }
+                ApprovalStatus.PENDING -> { /* allow — UI routes to pending screen */ }
+                ApprovalStatus.APPROVED -> { /* full access */ }
+            }
+
+            Resource.success(user)
         } catch (e: Exception) {
             Resource.error(e.message ?: "Login failed", e)
         }
     }
 
-    override suspend fun signUpWithEmail(email: String, password: String, role: UserRole, name: String): Resource<User> {
+    override suspend fun signUpWithEmail(
+        email: String,
+        password: String,
+        role: UserRole,
+        name: String
+    ): Resource<User> {
         return try {
-            val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
-            val firebaseUser = authResult.user ?: return Resource.error("Account creation failed")
+            supabase.auth.signUpWith(Email) {
+                this.email = email
+                this.password = password
+            }
+            val uid = supabase.auth.currentUserOrNull()?.id
+                ?: return Resource.error("Account creation failed")
 
-            val isAdminEmail = (firebaseUser.email ?: email).equals(Constants.ADMIN_DEFAULT_EMAIL, ignoreCase = true)
-            val finalRole = if (isAdminEmail) UserRole.ADMIN else role
+            val isAdmin = email.equals(Constants.ADMIN_DEFAULT_EMAIL, ignoreCase = true)
+            val finalRole = if (isAdmin) UserRole.ADMIN else role
+
+            // Custom UID format: MGB-<ROLE_PREFIX>-<last8_of_uuid>
+            val rolePrefix = when (finalRole) {
+                UserRole.ADMIN -> "ADM"
+                UserRole.RESIDENT -> "RES"
+                UserRole.TENANT -> "TEN"
+                UserRole.SECURITY_GUARD, UserRole.SECURITY_GUARD_WORKER -> "SEC"
+                UserRole.WORKER -> "WRK"
+            }
+            val customUid = "MGB-$rolePrefix-${uid.takeLast(8).uppercase()}"
+            val nameToUse = if (name.isBlank()) customUid else name
 
             val newUser = User(
-                id = firebaseUser.uid,
-                email = firebaseUser.email ?: email,
-                name = name,
+                id = uid,
+                email = email,
+                name = nameToUse,
                 role = finalRole,
-                isApproved = isAdminEmail,
+                approvalStatus = if (isAdmin) ApprovalStatus.APPROVED else ApprovalStatus.PENDING,
                 isProfileComplete = false,
                 createdAt = System.currentTimeMillis(),
                 updatedAt = System.currentTimeMillis()
             )
-            firestore.collection(Constants.COLLECTION_USERS)
-                .document(firebaseUser.uid)
-                .set(newUser.toFirestoreMap())
-                .await()
+            supabase.from(Constants.COLLECTION_USERS).insert(newUser.toDto())
             Resource.success(newUser)
         } catch (e: Exception) {
             Resource.error(e.message ?: "Sign up failed", e)
@@ -99,37 +118,39 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun getCurrentUser(): Resource<User> {
         return try {
-            val firebaseUser = firebaseAuth.currentUser ?: return Resource.error("Not logged in")
-            
-            val doc = firestore.collection(Constants.COLLECTION_USERS)
-                .document(firebaseUser.uid)
-                .get()
-                .await()
+            val uid = supabase.auth.currentUserOrNull()?.id
+                ?: return Resource.error("Not logged in")
 
-            if (doc.exists()) {
-                val data = doc.data ?: return Resource.error("User data is null")
-                val user = data.toUser().copy(id = firebaseUser.uid)
-                Resource.success(user)
-            } else {
-                firebaseAuth.signOut()
-                Resource.error("User profile not found")
-            }
+            val dto = supabase.from(Constants.COLLECTION_USERS)
+                .select { filter { eq("id", uid) } }
+                .decodeSingleOrNull<UserDto>()
+                ?: return Resource.error("User profile not found")
+
+            Resource.success(dto.toUser())
         } catch (e: Exception) {
             Resource.error(e.message ?: "Failed to get user", e)
         }
     }
 
-    override fun observeAuthState(): Flow<User?> = callbackFlow {
-        val listener = FirebaseAuth.AuthStateListener { auth ->
-            trySend(null)
+    override fun observeAuthState(): Flow<User?> {
+        return supabase.auth.sessionStatus.map { status ->
+            when (status) {
+                is SessionStatus.Authenticated -> {
+                    try {
+                        val uid = status.session.user?.id ?: return@map null
+                        supabase.from(Constants.COLLECTION_USERS)
+                            .select { filter { eq("id", uid) } }
+                            .decodeSingleOrNull<UserDto>()?.toUser()
+                    } catch (_: Exception) { null }
+                }
+                else -> null
+            }
         }
-        firebaseAuth.addAuthStateListener(listener)
-        awaitClose { firebaseAuth.removeAuthStateListener(listener) }
     }
 
     override suspend fun signOut(): Resource<Unit> {
         return try {
-            firebaseAuth.signOut()
+            supabase.auth.signOut()
             Resource.success(Unit)
         } catch (e: Exception) {
             Resource.error(e.message ?: "Sign out failed", e)
@@ -137,34 +158,15 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun isLoggedIn(): Boolean {
-        return firebaseAuth.currentUser != null
-    }
-
-    override suspend fun updateFcmToken(token: String): Resource<Unit> {
-        return try {
-            val userId = firebaseAuth.currentUser?.uid ?: return Resource.error("Not logged in")
-            firestore.collection(Constants.COLLECTION_USERS)
-                .document(userId)
-                .update("fcmToken", token)
-                .await()
-            Resource.success(Unit)
-        } catch (e: Exception) {
-            Resource.error(e.message ?: "Failed to update FCM token", e)
-        }
+        return supabase.auth.currentSessionOrNull() != null
     }
 
     override suspend fun deleteAccount(): Resource<Unit> {
         return try {
-            val firebaseUser = firebaseAuth.currentUser ?: return Resource.error("Not logged in")
-            val userId = firebaseUser.uid
-
-            firestore.collection(Constants.COLLECTION_USERS)
-                .document(userId)
-                .delete()
-                .await()
-
-            firebaseUser.delete().await()
-
+            val uid = supabase.auth.currentUserOrNull()?.id
+                ?: return Resource.error("Not logged in")
+            supabase.from(Constants.COLLECTION_USERS).delete { filter { eq("id", uid) } }
+            supabase.auth.signOut()
             Resource.success(Unit)
         } catch (e: Exception) {
             Resource.error(e.message ?: "Failed to delete account", e)

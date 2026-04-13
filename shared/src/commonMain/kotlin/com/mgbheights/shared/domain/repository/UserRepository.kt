@@ -14,6 +14,7 @@ interface UserRepository {
     suspend fun updateUser(user: User): Resource<User>
     suspend fun updateProfilePhoto(userId: String, photoUrl: String): Resource<Unit>
     suspend fun approveUser(userId: String): Resource<Unit>
+    suspend fun rejectUser(userId: String): Resource<Unit>
     suspend fun blockUser(userId: String): Resource<Unit>
     suspend fun unblockUser(userId: String): Resource<Unit>
     suspend fun deleteUser(userId: String): Resource<Unit>

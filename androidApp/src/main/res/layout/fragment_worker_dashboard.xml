@@ -137,7 +137,7 @@
                             android:id="@+id/tvEarnings"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="₹0"
+                            android:text="â‚¹0"
                             android:textSize="24sp"
                             android:textColor="@color/on_primary"
                             android:fontFamily="sans-serif-medium" />
@@ -170,7 +170,7 @@
                             android:id="@+id/tvRating"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="⭐ 0.0"
+                            android:text="â­ 0.0"
                             android:textSize="24sp"
                             android:textColor="@color/on_primary"
                             android:fontFamily="sans-serif-medium" />

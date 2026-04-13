@@ -1,17 +1,23 @@
-﻿package com.mgbheights.android.ui.profile
+﻿import com.mgbheights.android.databinding.FragmentEditProfileBinding
+            val updates = hashMapOf<String, Any>(
 
-import android.os.Bundle
-import android.view.LayoutInflater
+                    Toast.makeText(requireContext(),
+            val building = binding.etBuilding.text.toString().trim()
+class EditProfileFragment : Fragment(R.layout.fragment_edit_profile)
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.mgbheights.android.R
 import com.mgbheights.android.databinding.FragmentEditProfileBinding
 import com.mgbheights.android.util.CameraHelper
 import com.mgbheights.android.util.PhotoCompressor
+import com.mgbheights.android.util.ImageUtils
 import com.mgbheights.shared.domain.model.UserRole
 import com.mgbheights.shared.util.Resource
 import dagger.hilt.android.AndroidEntryPoint
@@ -21,76 +27,92 @@ class EditProfileFragment : Fragment() {
 
     private var _binding: FragmentEditProfileBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: ProfileViewModel by viewModels()
-    private lateinit var cameraHelper: CameraHelper
-    private var newProfilePhotoBase64: String? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    private var selectedBitmap: Bitmap? = null
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentEditProfileBinding.inflate(inflater, container, false)
-        
-        cameraHelper = CameraHelper(this) { uri ->
-            val base64 = PhotoCompressor.compressProfilePhoto(requireContext(), uri)
-            if (base64 != null) {
-                newProfilePhotoBase64 = base64
-                PhotoCompressor.loadPhotoIntoView(binding.ivProfilePhoto, base64, R.drawable.ic_profile)
-            }
-        }
-        
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.toolbar.setNavigationOnClickListener { findNavController().navigateUp() }
 
-        viewModel.user.observe(viewLifecycleOwner) { state ->
-            if (state is Resource.Success) {
-                val user = state.data
-                binding.etName.setText(user.name)
-                binding.etEmail.setText(user.email)
-                binding.etFlatNumber.setText(user.flatNumber)
-                binding.etTowerBlock.setText(user.towerBlock)
-                
-                if (newProfilePhotoBase64 == null) {
-                    PhotoCompressor.loadPhotoIntoView(binding.ivProfilePhoto, user.profilePhotoUrl, R.drawable.ic_profile)
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        // Load current data into edit fields
+        FirebaseFirestore.getInstance()
+            .collection("users").document(uid).get()
+            .addOnSuccessListener { doc ->
+                binding.etName.setText(doc.getString("name"))
+                binding.etPhone.setText(doc.getString("phone"))
+                binding.etBuilding.setText(doc.getString("buildingNumber"))
+                binding.etFlat.setText(doc.getString("flatNumber"))
+                val photo = doc.getString("profilePhotoBase64") ?: ""
+                if (photo.isNotEmpty()) {
+                    ImageUtils.base64ToBitmap(photo)?.let {
+                        binding.ivPhoto.setImageBitmap(it)
+                    }
                 }
+            }
 
-                val isStaff = user.role == UserRole.WORKER || user.role == UserRole.SECURITY_GUARD || user.role == UserRole.SECURITY_GUARD_WORKER
-                binding.tilFlatNumber.visibility = if (isStaff) View.GONE else View.VISIBLE
-                binding.tilTowerBlock.visibility = if (isStaff) View.GONE else View.VISIBLE
+        // Photo picker
+        val launcher = registerForActivityResult(
+            ActivityResultContracts.GetContent()
+        ) { uri ->
+            uri?.let {
+                val bitmap = MediaStore.Images.Media.getBitmap(
+                    requireActivity().contentResolver, it
+                )
+                selectedBitmap = bitmap
+                binding.ivPhoto.setImageBitmap(bitmap)
             }
         }
-
-        binding.layoutProfilePhoto.setOnClickListener {
-            cameraHelper.showPhotoPicker()
+        binding.btnChangePhoto.setOnClickListener {
+            launcher.launch("image/*")
         }
 
+        // Save button
         binding.btnSave.setOnClickListener {
-            val name = binding.etName.text.toString().trim()
-            val email = binding.etEmail.text.toString().trim()
-            val flat = binding.etFlatNumber.text.toString().trim()
-            val tower = binding.etTowerBlock.text.toString().trim()
+            val name     = binding.etName.text.toString().trim()
+            val phone    = binding.etPhone.text.toString().trim()
+            val building = binding.etBuilding.text.toString().trim()
+            val flat     = binding.etFlat.text.toString().trim()
 
-            if (name.isBlank()) {
-                Toast.makeText(requireContext(), "Name cannot be empty", Toast.LENGTH_SHORT).show()
+            if (name.isEmpty() || phone.isEmpty() ||
+                building.isEmpty() || flat.isEmpty()) {
+                Toast.makeText(requireContext(),
+                    "All fields are required", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // If photo was changed, update it first or along with profile
-            newProfilePhotoBase64?.let { viewModel.updateProfilePhoto(it) }
-            
-            viewModel.updateProfile(name, email, flat, tower)
-        }
-
-        viewModel.updateState.observe(viewLifecycleOwner) { state ->
-            if (state is Resource.Success) {
-                Toast.makeText(requireContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                findNavController().navigateUp()
-            } else if (state is Resource.Error) {
-                Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
+            val updates = hashMapOf<String, Any>(
+                "name"           to name,
+                "phone"          to phone,
+                "buildingNumber" to building,
+                "flatNumber"     to flat
+            )
+            selectedBitmap?.let {
+                updates["profilePhotoBase64"] = ImageUtils.bitmapToBase64(it, 50)
             }
+
+            FirebaseFirestore.getInstance()
+                .collection("users").document(uid)
+                .update(updates)
+                .addOnSuccessListener {
+                    Toast.makeText(requireContext(),
+                        "Profile updated!", Toast.LENGTH_SHORT).show()
+                    findNavController().popBackStack()
+                }
         }
     }
 
-    override fun onDestroyView() { super.onDestroyView(); _binding = null }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

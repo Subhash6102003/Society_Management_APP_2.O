@@ -12,6 +12,5 @@ interface AuthRepository {
     fun observeAuthState(): Flow<User?>
     suspend fun signOut(): Resource<Unit>
     suspend fun isLoggedIn(): Boolean
-    suspend fun updateFcmToken(token: String): Resource<Unit>
     suspend fun deleteAccount(): Resource<Unit>
 }

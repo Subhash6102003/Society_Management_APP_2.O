@@ -15,7 +15,8 @@ data class UserEntity(
     val flatNumber: String = "",
     val towerBlock: String = "",
     val houseNumber: String = "",
-    val isApproved: Boolean = false,
+    /** PENDING | APPROVED | REJECTED — replaces legacy isApproved boolean */
+    val approvalStatus: String = "PENDING",
     val isBlocked: Boolean = false,
     val isProfileComplete: Boolean = false,
     val isOnboarded: Boolean = false,

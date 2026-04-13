@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph_main"
+    app:startDestination="@id/splashFragment">
+
+    <fragment
+        android:id="@+id/splashFragment"
+        android:name="com.mgbheights.android.ui.auth.SplashFragment"
+        android:label="SplashFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/landingFragment"
+        android:name="com.mgbheights.android.ui.auth.LandingFragment"
+        android:label="LandingFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/enterEmailFragment"
+        android:name="com.mgbheights.android.ui.auth.EnterEmailFragment"
+        android:label="EnterEmailFragment">
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/selectRoleFragment"
+        android:name="com.mgbheights.android.ui.auth.SelectRoleFragment"
+        android:label="SelectRoleFragment">
+        <argument android:name="email" app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/createProfileFragment"
+        android:name="com.mgbheights.android.ui.auth.CreateProfileFragment"
+        android:label="CreateProfileFragment">
+        <argument android:name="email" app:argType="string" />
+        <argument android:name="role" app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/pendingApprovalFragment"
+        android:name="com.mgbheights.android.ui.auth.PendingApprovalFragment"
+        android:label="PendingApprovalFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/rejectedFragment"
+        android:name="com.mgbheights.android.ui.auth.RejectedFragment"
+        android:label="RejectedFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminDashboardFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminDashboardFragment"
+        android:label="AdminDashboardFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminResidentsFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminResidentsFragment"
+        android:label="AdminResidentsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminResidentDetailFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminResidentDetailFragment"
+        android:label="AdminResidentDetailFragment">
+        <argument android:name="userId" app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminTenantsFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminTenantsFragment"
+        android:label="AdminTenantsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminTenantDetailFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminTenantDetailFragment"
+        android:label="AdminTenantDetailFragment">
+        <argument android:name="userId" app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminGuardsFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminGuardsFragment"
+        android:label="AdminGuardsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminWorkersFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminWorkersFragment"
+        android:label="AdminWorkersFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminMaidsFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminMaidsFragment"
+        android:label="AdminMaidsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminUserDetailFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminUserDetailFragment"
+        android:label="AdminUserDetailFragment">
+        <argument android:name="userId" app:argType="string" />
+        <argument android:name="userType" app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminUserManagementFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminUserManagementFragment"
+        android:label="AdminUserManagementFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminNoticesFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminNoticesFragment"
+        android:label="AdminNoticesFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminCreateNoticeFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminCreateNoticeFragment"
+        android:label="AdminCreateNoticeFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminComplaintsFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminComplaintsFragment"
+        android:label="AdminComplaintsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminComplaintDetailFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminComplaintDetailFragment"
+        android:label="AdminComplaintDetailFragment">
+        <argument android:name="complaintId" app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminBillsFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminBillsFragment"
+        android:label="AdminBillsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminCreateBillFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminCreateBillFragment"
+        android:label="AdminCreateBillFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminVisitorsFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminVisitorsFragment"
+        android:label="AdminVisitorsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminProfileFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminProfileFragment"
+        android:label="AdminProfileFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminShopFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminShopFragment"
+        android:label="AdminShopFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentHomeFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentHomeFragment"
+        android:label="ResidentHomeFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentComplaintsFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentComplaintsFragment"
+        android:label="ResidentComplaintsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentRaiseComplaintFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentRaiseComplaintFragment"
+        android:label="ResidentRaiseComplaintFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentNoticesFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentNoticesFragment"
+        android:label="ResidentNoticesFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentBillsFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentBillsFragment"
+        android:label="ResidentBillsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentWorkerListFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentWorkerListFragment"
+        android:label="ResidentWorkerListFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentWorkerBookingFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentWorkerBookingFragment"
+        android:label="ResidentWorkerBookingFragment">
+        <argument android:name="workerId" app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentMyBookingsFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentMyBookingsFragment"
+        android:label="ResidentMyBookingsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentMyTenantsFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentMyTenantsFragment"
+        android:label="ResidentMyTenantsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentTenantDetailFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentTenantDetailFragment"
+        android:label="ResidentTenantDetailFragment">
+        <argument android:name="tenantId" app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentMyMaidFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentMyMaidFragment"
+        android:label="ResidentMyMaidFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentProfileFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentProfileFragment"
+        android:label="ResidentProfileFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentShopFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentShopFragment"
+        android:label="ResidentShopFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentShopPostFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentShopPostFragment"
+        android:label="ResidentShopPostFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/residentShopDetailFragment"
+        android:name="com.mgbheights.android.ui.resident.ResidentShopDetailFragment"
+        android:label="ResidentShopDetailFragment">
+        <argument android:name="listingId" app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/tenantHomeFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantHomeFragment"
+        android:label="TenantHomeFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/tenantComplaintsFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantComplaintsFragment"
+        android:label="TenantComplaintsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/tenantRaiseComplaintFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantRaiseComplaintFragment"
+        android:label="TenantRaiseComplaintFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/tenantNoticesFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantNoticesFragment"
+        android:label="TenantNoticesFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/tenantBillsFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantBillsFragment"
+        android:label="TenantBillsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/tenantWorkerListFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantWorkerListFragment"
+        android:label="TenantWorkerListFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/tenantWorkerBookingFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantWorkerBookingFragment"
+        android:label="TenantWorkerBookingFragment">
+        <argument android:name="workerId" app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/tenantMyMaidFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantMyMaidFragment"
+        android:label="TenantMyMaidFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/tenantProfileFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantProfileFragment"
+        android:label="TenantProfileFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/tenantShopFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantShopFragment"
+        android:label="TenantShopFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/tenantShopPostFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantShopPostFragment"
+        android:label="TenantShopPostFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/tenantShopDetailFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantShopDetailFragment"
+        android:label="TenantShopDetailFragment">
+        <argument android:name="listingId" app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/guardDashboardFragment"
+        android:name="com.mgbheights.android.ui.guard.GuardDashboardFragment"
+        android:label="GuardDashboardFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/guardAddVisitorFragment"
+        android:name="com.mgbheights.android.ui.guard.GuardAddVisitorFragment"
+        android:label="GuardAddVisitorFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/guardVisitorLogFragment"
+        android:name="com.mgbheights.android.ui.guard.GuardVisitorLogFragment"
+        android:label="GuardVisitorLogFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/guardProfileFragment"
+        android:name="com.mgbheights.android.ui.guard.GuardProfileFragment"
+        android:label="GuardProfileFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/guardShopFragment"
+        android:name="com.mgbheights.android.ui.guard.GuardShopFragment"
+        android:label="GuardShopFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/workerDashboardFragment"
+        android:name="com.mgbheights.android.ui.worker.WorkerDashboardFragment"
+        android:label="WorkerDashboardFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/workerBookingsFragment"
+        android:name="com.mgbheights.android.ui.worker.WorkerBookingsFragment"
+        android:label="WorkerBookingsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/workerBookingDetailFragment"
+        android:name="com.mgbheights.android.ui.worker.WorkerBookingDetailFragment"
+        android:label="WorkerBookingDetailFragment">
+        <argument android:name="bookingId" app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/workerProfileFragment"
+        android:name="com.mgbheights.android.ui.worker.WorkerProfileFragment"
+        android:label="WorkerProfileFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/workerShopFragment"
+        android:name="com.mgbheights.android.ui.worker.WorkerShopFragment"
+        android:label="WorkerShopFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/maidDashboardFragment"
+        android:name="com.mgbheights.android.ui.maid.MaidDashboardFragment"
+        android:label="MaidDashboardFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/maidMyFlatSlotsFragment"
+        android:name="com.mgbheights.android.ui.maid.MaidMyFlatSlotsFragment"
+        android:label="MaidMyFlatSlotsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/maidAddSlotFragment"
+        android:name="com.mgbheights.android.ui.maid.MaidAddSlotFragment"
+        android:label="MaidAddSlotFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/maidProfileFragment"
+        android:name="com.mgbheights.android.ui.maid.MaidProfileFragment"
+        android:label="MaidProfileFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/maidShopFragment"
+        android:name="com.mgbheights.android.ui.maid.MaidShopFragment"
+        android:label="MaidShopFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/shopListingDetailFragment"
+        android:name="com.mgbheights.android.ui.shop.ShopListingDetailFragment"
+        android:label="ShopListingDetailFragment">
+        <argument android:name="listingId" app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/shopPostItemFragment"
+        android:name="com.mgbheights.android.ui.shop.ShopPostItemFragment"
+        android:label="ShopPostItemFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/shopMyListingsFragment"
+        android:name="com.mgbheights.android.ui.shop.ShopMyListingsFragment"
+        android:label="ShopMyListingsFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/shopSearchFragment"
+        android:name="com.mgbheights.android.ui.shop.ShopSearchFragment"
+        android:label="ShopSearchFragment">
+    </fragment>
+
+</navigation>

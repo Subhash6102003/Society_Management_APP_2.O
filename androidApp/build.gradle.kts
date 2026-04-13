@@ -1,3 +1,4 @@
+﻿    implementation(libs.firebase.storage)
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -46,10 +47,10 @@ android {
 
     buildFeatures {
         viewBinding = true
+        dataBinding = true
         buildConfig = true
     }
 }
-
 ksp {
     arg("correctErrorTypes", "true")
 }
@@ -107,23 +108,20 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
-    implementation(libs.firebase.storage)
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.analytics)
+    implementation(libs.play.services.auth)
 
     // Coroutines
-    implementation(libs.kotlinx.coroutines.android)
-
-    // Third Party
-    implementation(libs.coil) // Kept for compatibility if needed, but Glide is preferred by prompt
-    implementation(libs.glide)
-    ksp(libs.glide.compiler)
-    implementation(libs.circleimageview)
-    implementation(libs.razorpay)
     implementation(libs.lottie)
     implementation(libs.timber)
+    // Supabase
+    implementation("io.ktor:ktor-client-android:2.3.12")
+    implementation("io.github.jan-tennert.supabase:postgrest-kt:2.6.0")
+    implementation("io.github.jan-tennert.supabase:storage-kt:2.6.0")
 
-    // Testing
+    implementation(libs.volley)
+
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
@@ -132,3 +130,5 @@ dependencies {
     androidTestImplementation(libs.test.runner)
     debugImplementation(libs.leakcanary)
 }
+
+

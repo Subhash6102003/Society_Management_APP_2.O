@@ -1,14 +1,17 @@
-package com.mgbheights.android.ui.notice
-
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import com.mgbheights.android.databinding.FragmentNoticeListBinding
+    private var _binding: FragmentNoticeListBinding? = null
+        _binding = FragmentNoticeListBinding.inflate(inflater, container, false)
+        noticeAdapter = NoticeAdapter { notice ->
+    }
+class NoticeListFragment : Fragment(R.layout.fragment_notice_list)
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.mgbheights.android.R
 import com.mgbheights.android.databinding.FragmentNoticeListBinding
 import com.mgbheights.android.ui.adapter.NoticeAdapter
@@ -32,42 +35,42 @@ class NoticeListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         noticeAdapter = NoticeAdapter { notice ->
-            viewModel.markRead(notice.id)
             val action = NoticeListFragmentDirections.actionNoticeListToNoticeDetail(notice.id)
             findNavController().navigate(action)
         }
         binding.rvNotices.layoutManager = LinearLayoutManager(requireContext())
         binding.rvNotices.adapter = noticeAdapter
 
-        binding.swipeRefresh.setColorSchemeResources(R.color.primary)
-        binding.swipeRefresh.setOnRefreshListener { viewModel.loadNotices() }
+        loadNotices()
+    }
 
-        binding.fabCreateNotice.setOnClickListener {
-            findNavController().navigate(R.id.action_noticeList_to_createNotice)
-        }
+    private fun loadNotices() {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        binding.progressLoading.isVisible = true
 
-        viewModel.isAdmin.observe(viewLifecycleOwner) { isAdmin ->
-            binding.fabCreateNotice.isVisible = isAdmin
-        }
+        FirebaseFirestore.getInstance().collection("users").document(uid).get().addOnSuccessListener { userDoc ->
+            val userType = userDoc.getString("userType")
+            binding.fabCreateNotice.isVisible = userType == "admin"
 
-        viewModel.notices.observe(viewLifecycleOwner) { state ->
-            when (state) {
-                is Resource.Loading -> binding.progressLoading.isVisible = true
-                is Resource.Success -> {
+            FirebaseFirestore.getInstance()
+                .collection("notices")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener { snapshot ->
                     binding.progressLoading.isVisible = false
-                    binding.swipeRefresh.isRefreshing = false
-                    noticeAdapter.submitList(state.data)
-                    binding.layoutEmpty.isVisible = state.data.isEmpty()
+                    val notices = snapshot.toObjects(com.mgbheights.shared.domain.model.Notice::class.java)
+                    val filteredNotices = notices.filter {
+                        it.targetUserType.equals("all", ignoreCase = true) || it.targetUserType.equals(userType, ignoreCase = true)
+                    }
+                    noticeAdapter.submitList(filteredNotices)
+                    binding.layoutEmpty.isVisible = filteredNotices.isEmpty()
                 }
-                is Resource.Error -> {
+                .addOnFailureListener {
                     binding.progressLoading.isVisible = false
-                    binding.swipeRefresh.isRefreshing = false
                     binding.layoutEmpty.isVisible = true
                 }
-            }
         }
     }
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }
 }
-

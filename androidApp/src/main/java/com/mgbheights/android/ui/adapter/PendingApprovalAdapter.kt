@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.mgbheights.android.databinding.ItemUserApprovalBinding
+import com.mgbheights.shared.domain.model.ApprovalStatus
 import com.mgbheights.shared.domain.model.User
 
 class PendingApprovalAdapter(
@@ -35,17 +36,26 @@ class PendingApprovalAdapter(
             }
             binding.chipRole.text = user.role.name.replace("_", " ")
 
-            if (user.isApproved) {
-                binding.layoutPendingActions.isVisible = false
-                binding.btnDelete.isVisible = true
-                binding.btnDelete.setOnClickListener { onDelete?.invoke(user) }
-            } else {
-                binding.layoutPendingActions.isVisible = true
-                binding.btnDelete.isVisible = false
-                binding.btnApprove.setOnClickListener { onApprove(user) }
-                binding.btnReject.setOnClickListener { onReject(user) }
+            when (user.approvalStatus) {
+                ApprovalStatus.APPROVED -> {
+                    binding.layoutPendingActions.isVisible = false
+                    binding.btnDelete.isVisible = true
+                    binding.btnDelete.setOnClickListener { onDelete?.invoke(user) }
+                }
+                ApprovalStatus.PENDING -> {
+                    binding.layoutPendingActions.isVisible = true
+                    binding.btnDelete.isVisible = false
+                    binding.btnApprove.setOnClickListener { onApprove(user) }
+                    binding.btnReject.setOnClickListener { onReject(user) }
+                }
+                ApprovalStatus.REJECTED -> {
+                    binding.layoutPendingActions.isVisible = false
+                    binding.btnDelete.isVisible = true
+                    binding.btnDelete.text = "Delete"
+                    binding.btnDelete.setOnClickListener { onDelete?.invoke(user) }
+                }
             }
-            
+
             binding.root.setOnClickListener { onItemClick?.invoke(user) }
         }
     }

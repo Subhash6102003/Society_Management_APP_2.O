@@ -1,9 +1,9 @@
-package com.mgbheights.android.ui.complaint
-
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import com.mgbheights.android.databinding.FragmentComplaintDetailBinding
+    private var _binding: FragmentComplaintDetailBinding? = null
+        return binding.root
+        super.onViewCreated(view, savedInstanceState)
+            binding.progressLoading.isVisible = state is Resource.Loading
+class ComplaintDetailFragment : Fragment(R.layout.fragment_complaint_detail)
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment

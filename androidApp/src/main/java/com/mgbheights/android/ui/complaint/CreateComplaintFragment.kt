@@ -8,6 +8,9 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 import com.mgbheights.android.R
 import com.mgbheights.android.databinding.FragmentCreateComplaintBinding
 import com.mgbheights.android.util.CameraHelper
@@ -50,17 +53,46 @@ class CreateComplaintFragment : Fragment() {
         }
 
         binding.btnSubmit.setOnClickListener {
-            val title = binding.etTitle.text?.toString()?.trim() ?: ""
-            val desc = binding.etDescription.text?.toString()?.trim() ?: ""
-            
-            if (title.isBlank() || desc.isBlank()) {
-                Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
+            val title = binding.etTitle.text.toString().trim()
+            val description = binding.etDescription.text.toString().trim()
+            val category = "General" // Simplified
+
+            if (title.isEmpty() || description.isEmpty()) {
+                Toast.makeText(requireContext(), "Title and description are required", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            
-            // Submit logic...
-            Toast.makeText(requireContext(), "Complaint submitted", Toast.LENGTH_SHORT).show()
-            findNavController().navigateUp()
+
+            val user = FirebaseAuth.getInstance().currentUser
+            if (user == null) {
+                Toast.makeText(requireContext(), "You must be logged in to submit a complaint.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Get user details to add to complaint
+            FirebaseFirestore.getInstance().collection("users").document(user.uid).get().addOnSuccessListener { userDoc ->
+                val complaintData = hashMapOf(
+                    "title"           to title,
+                    "description"     to description,
+                    "category"        to category,
+                    "submittedByUid"  to user.uid,
+                    "submittedByName" to userDoc.getString("name"),
+                    "submitterUserType" to userDoc.getString("userType"),
+                    "flatNumber"      to userDoc.getString("flatNumber"),
+                    "buildingNumber"  to userDoc.getString("buildingNumber"),
+                    "status"          to "pending",
+                    "createdAt"       to FieldValue.serverTimestamp()
+                )
+                FirebaseFirestore.getInstance()
+                    .collection("complaints")
+                    .add(complaintData)
+                    .addOnSuccessListener {
+                        Toast.makeText(requireContext(), "Complaint submitted!", Toast.LENGTH_SHORT).show()
+                        findNavController().popBackStack()
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(requireContext(), "Failed to submit complaint.", Toast.LENGTH_SHORT).show()
+                    }
+            }
         }
     }
 

@@ -1,30 +1,24 @@
 package com.mgbheights.android.utils
 
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
+import com.mgbheights.shared.util.Constants
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.postgrest.from
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object FirestoreHelper {
-
-    private val db: FirebaseFirestore by lazy { FirebaseFirestore.getInstance() }
-
-    fun approveMaidSlotRequest(
-        requestId: String,
-        maidUid: String,
-        targetUid: String,
-        targetUserType: String,
-        flatObject: Map<String, Any>
-    ) {
-        db.collection("maidSlotRequests").document(requestId).update("status", "approved")
-        db.collection("maids").document(maidUid)
-            .update("assignedFlats", FieldValue.arrayUnion(flatObject))
-
-        val targetCollection = if (targetUserType == "resident") "residents" else "tenants"
-        db.collection(targetCollection).document(targetUid)
-            .update("assignedMaidUids", FieldValue.arrayUnion(maidUid))
+@Singleton
+class SupabaseHelper @Inject constructor(
+    private val supabase: SupabaseClient
+) {
+    suspend fun approveMaidSlotRequest(requestId: String, maidUid: String) {
+        supabase.from("maid_slot_requests").update(
+            mapOf("status" to "approved")
+        ) { filter { eq("id", requestId) } }
     }
 
-    fun rejectMaidSlotRequest(requestId: String) {
-        db.collection("maidSlotRequests").document(requestId).update("status", "rejected")
+    suspend fun rejectMaidSlotRequest(requestId: String) {
+        supabase.from("maid_slot_requests").update(
+            mapOf("status" to "rejected")
+        ) { filter { eq("id", requestId) } }
     }
 }
-

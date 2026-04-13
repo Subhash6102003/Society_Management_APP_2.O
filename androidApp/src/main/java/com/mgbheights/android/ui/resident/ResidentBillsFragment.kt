@@ -1,14 +1,6 @@
-package com.mgbheights.android.ui.resident
+﻿package com.mgbheights.android.ui.resident
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.mgbheights.android.R
 
-class ResidentBillsFragment : Fragment() {
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_maintenance_list, container, false)
-    }
-}
+class ResidentBillsFragment : Fragment(R.layout.fragment_resident_bills)

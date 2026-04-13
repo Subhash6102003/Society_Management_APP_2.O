@@ -1,58 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph_tenant"
     app:startDestination="@id/tenantHomeFragment">
 
     <fragment
         android:id="@+id/tenantHomeFragment"
-        android:name="com.mgbheights.android.ui.tenant.TenantHomeFragment"
-        android:label="Home"
-        tools:layout="@layout/fragment_tenant_home">
-        <action
-            android:id="@+id/action_tenantHome_to_tenantRaiseComplaint"
-            app:destination="@id/tenantRaiseComplaintFragment" />
+        android:name="com.mgbheights.android.ui.tenant.TenantHomeFragment">
+        <action android:id="@+id/action_tenant_home_to_complaints" app:destination="@id/tenantComplaintsFragment" />
+        <action android:id="@+id/action_tenant_home_to_bills" app:destination="@id/tenantBillsFragment" />
+        <action android:id="@+id/action_tenant_home_to_notices" app:destination="@id/tenantNoticesFragment" />
+        <action android:id="@+id/action_tenant_home_to_worker_list" app:destination="@id/tenantWorkerListFragment" />
+        <action android:id="@+id/action_tenant_home_to_my_maid" app:destination="@id/tenantMyMaidFragment" />
+        <action android:id="@+id/action_tenant_home_to_shop" app:destination="@id/tenantShopFragment" />
+        <action android:id="@+id/action_tenant_home_to_profile" app:destination="@id/tenantProfileFragment" />
+        <action android:id="@+id/action_tenant_home_to_settings" app:destination="@id/tenantSettingsFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/tenantComplaintsFragment"
-        android:name="com.mgbheights.android.ui.tenant.TenantComplaintsFragment"
-        android:label="Complaints"
-        tools:layout="@layout/fragment_tenant_complaints">
-        <action
-            android:id="@+id/action_tenantComplaints_to_tenantRaiseComplaint"
-            app:destination="@id/tenantRaiseComplaintFragment" />
+        android:name="com.mgbheights.android.ui.tenant.TenantComplaintsFragment">
+        <action android:id="@+id/action_tenant_complaints_to_raise" app:destination="@id/tenantRaiseComplaintFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/tenantRaiseComplaintFragment"
-        android:name="com.mgbheights.android.ui.tenant.TenantRaiseComplaintFragment"
-        android:label="Raise Complaint"
-        tools:layout="@layout/fragment_tenant_raise_complaint" />
-
-    <fragment
-        android:id="@+id/tenantBillsFragment"
-        android:name="com.mgbheights.android.ui.tenant.TenantBillsFragment"
-        android:label="Bills"
-        tools:layout="@layout/fragment_tenant_bills" />
+        android:name="com.mgbheights.android.ui.tenant.TenantRaiseComplaintFragment" />
 
     <fragment
         android:id="@+id/tenantNoticesFragment"
-        android:name="com.mgbheights.android.ui.tenant.TenantNoticesFragment"
-        android:label="Notices"
-        tools:layout="@layout/fragment_tenant_notices" />
+        android:name="com.mgbheights.android.ui.tenant.TenantNoticesFragment" />
+
+    <fragment
+        android:id="@+id/tenantBillsFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantBillsFragment" />
+
+    <fragment
+        android:id="@+id/tenantWorkerListFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantWorkerListFragment">
+        <action android:id="@+id/action_tenant_worker_list_to_booking" app:destination="@id/tenantWorkerBookingFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/tenantWorkerBookingFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantWorkerBookingFragment" />
+
+    <fragment
+        android:id="@+id/tenantMyMaidFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantMyMaidFragment" />
+
+    <fragment
+        android:id="@+id/tenantShopFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantShopFragment">
+        <action android:id="@+id/action_tenant_shop_to_post" app:destination="@id/tenantShopPostFragment" />
+        <action android:id="@+id/action_tenant_shop_to_detail" app:destination="@id/tenantShopDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/tenantShopPostFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantShopPostFragment" />
+
+    <fragment
+        android:id="@+id/tenantShopDetailFragment"
+        android:name="com.mgbheights.android.ui.tenant.TenantShopDetailFragment" />
 
     <fragment
         android:id="@+id/tenantProfileFragment"
-        android:name="com.mgbheights.android.ui.tenant.TenantProfileFragment"
-        android:label="Profile"
-        tools:layout="@layout/fragment_tenant_profile" />
+        android:name="com.mgbheights.android.ui.tenant.TenantProfileFragment">
+        <action android:id="@+id/action_tenant_profile_to_settings" app:destination="@id/tenantSettingsFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/tenantSettingsFragment"
-        android:name="com.mgbheights.android.ui.tenant.TenantSettingsFragment"
-        android:label="Settings"
-        tools:layout="@layout/fragment_tenant_settings" />
+        android:name="com.mgbheights.android.ui.tenant.TenantSettingsFragment">
+        <action android:id="@+id/action_tenant_settings_to_profile" app:destination="@id/tenantProfileFragment" />
+    </fragment>
 
 </navigation>
+

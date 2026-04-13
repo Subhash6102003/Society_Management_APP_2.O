@@ -7,160 +7,138 @@
 
     <fragment
         android:id="@+id/adminDashboardFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminDashboardFragment"
-        android:label="Dashboard"
-        tools:layout="@layout/fragment_admin_dashboard">
-        <action
-            android:id="@+id/action_adminDashboard_to_adminComplaints"
-            app:destination="@id/adminComplaintsFragment" />
-        <action
-            android:id="@+id/action_adminDashboard_to_adminBills"
-            app:destination="@id/adminBillsFragment" />
+        android:name="com.mgbheights.android.ui.admin.AdminDashboardFragment">
+        <action android:id="@+id/action_admin_dashboard_to_residents" app:destination="@id/adminResidentsFragment" />
+        <action android:id="@+id/action_admin_dashboard_to_tenants" app:destination="@id/adminTenantsFragment" />
+        <action android:id="@+id/action_admin_dashboard_to_guards" app:destination="@id/adminGuardsFragment" />
+        <action android:id="@+id/action_admin_dashboard_to_workers" app:destination="@id/adminWorkersFragment" />
+        <action android:id="@+id/action_admin_dashboard_to_maids" app:destination="@id/adminMaidsFragment" />
+        <action android:id="@+id/action_admin_dashboard_to_user_management" app:destination="@id/adminUserManagementFragment" />
+        <action android:id="@+id/action_admin_dashboard_to_complaints" app:destination="@id/adminComplaintsFragment" />
+        <action android:id="@+id/action_admin_dashboard_to_notices" app:destination="@id/adminNoticesFragment" />
+        <action android:id="@+id/action_admin_dashboard_to_bills" app:destination="@id/adminBillsFragment" />
+        <action android:id="@+id/action_admin_dashboard_to_visitors_log" app:destination="@id/adminVisitorsLogFragment" />
+        <action android:id="@+id/action_admin_dashboard_to_visitors" app:destination="@id/adminVisitorsFragment" />
+        <action android:id="@+id/action_admin_dashboard_to_media" app:destination="@id/adminMediaFragment" />
+        <action android:id="@+id/action_admin_dashboard_to_shop" app:destination="@id/adminShopFragment" />
+        <action android:id="@+id/action_admin_dashboard_to_profile" app:destination="@id/adminProfileFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/adminResidentsFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminResidentsFragment"
-        android:label="Residents"
-        tools:layout="@layout/fragment_admin_residents">
-        <action
-            android:id="@+id/action_adminResidents_to_adminResidentDetail"
-            app:destination="@id/adminResidentDetailFragment" />
+        android:name="com.mgbheights.android.ui.admin.AdminResidentsFragment">
+        <action android:id="@+id/action_admin_residents_to_detail" app:destination="@id/adminResidentDetailFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/adminResidentDetailFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminResidentDetailFragment"
-        android:label="Resident Detail">
-        <argument
-            android:name="userId"
-            app:argType="string" />
+        android:name="com.mgbheights.android.ui.admin.AdminResidentDetailFragment">
+        <action android:id="@+id/action_admin_resident_detail_to_user_detail" app:destination="@id/adminUserDetailFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/adminTenantsFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminTenantsFragment"
-        android:label="Tenants"
-        tools:layout="@layout/fragment_admin_tenants">
-        <action
-            android:id="@+id/action_adminTenants_to_adminTenantDetail"
-            app:destination="@id/adminTenantDetailFragment" />
+        android:name="com.mgbheights.android.ui.admin.AdminTenantsFragment">
+        <action android:id="@+id/action_admin_tenants_to_detail" app:destination="@id/adminTenantDetailFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/adminTenantDetailFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminTenantDetailFragment"
-        android:label="Tenant Detail">
-        <argument
-            android:name="userId"
-            app:argType="string" />
+        android:name="com.mgbheights.android.ui.admin.AdminTenantDetailFragment">
+        <action android:id="@+id/action_admin_tenant_detail_to_user_detail" app:destination="@id/adminUserDetailFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/adminGuardsFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminGuardsFragment"
-        android:label="Guards"
-        tools:layout="@layout/fragment_admin_guards">
-        <action
-            android:id="@+id/action_adminGuards_to_adminGuardDetail"
-            app:destination="@id/adminGuardDetailFragment" />
+        android:name="com.mgbheights.android.ui.admin.AdminGuardsFragment">
+        <action android:id="@+id/action_admin_guards_to_detail" app:destination="@id/adminGuardDetailFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/adminGuardDetailFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminGuardDetailFragment"
-        android:label="Guard Detail">
-        <argument
-            android:name="userId"
-            app:argType="string" />
+        android:name="com.mgbheights.android.ui.admin.AdminGuardDetailFragment">
+        <action android:id="@+id/action_admin_guard_detail_to_user_detail" app:destination="@id/adminUserDetailFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/adminWorkersFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminWorkersFragment"
-        android:label="Workers"
-        tools:layout="@layout/fragment_admin_workers">
-        <action
-            android:id="@+id/action_adminWorkers_to_adminWorkerDetail"
-            app:destination="@id/adminWorkerDetailFragment" />
+        android:name="com.mgbheights.android.ui.admin.AdminWorkersFragment">
+        <action android:id="@+id/action_admin_workers_to_detail" app:destination="@id/adminWorkerDetailFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/adminWorkerDetailFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminWorkerDetailFragment"
-        android:label="Worker Detail">
-        <argument
-            android:name="userId"
-            app:argType="string" />
+        android:name="com.mgbheights.android.ui.admin.AdminWorkerDetailFragment">
+        <action android:id="@+id/action_admin_worker_detail_to_user_detail" app:destination="@id/adminUserDetailFragment" />
     </fragment>
 
     <fragment
+        android:id="@+id/adminMaidsFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminMaidsFragment">
+        <action android:id="@+id/action_admin_maids_to_user_detail" app:destination="@id/adminUserDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminUserManagementFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminUserManagementFragment">
+        <action android:id="@+id/action_admin_user_management_to_user_detail" app:destination="@id/adminUserDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminUserDetailFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminUserDetailFragment" />
+
+    <fragment
         android:id="@+id/adminComplaintsFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminComplaintsFragment"
-        android:label="Complaints"
-        tools:layout="@layout/fragment_admin_complaints">
-        <action
-            android:id="@+id/action_adminComplaints_to_adminComplaintDetail"
-            app:destination="@id/adminComplaintDetailFragment" />
+        android:name="com.mgbheights.android.ui.admin.AdminComplaintsFragment">
+        <action android:id="@+id/action_admin_complaints_to_detail" app:destination="@id/adminComplaintDetailFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/adminComplaintDetailFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminComplaintDetailFragment"
-        android:label="Complaint Detail">
-        <argument
-            android:name="complaintId"
-            app:argType="string" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/adminNoticesFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminNoticesFragment"
-        android:label="Notices"
-        tools:layout="@layout/fragment_admin_notices">
-        <action
-            android:id="@+id/action_adminNotices_to_adminCreateNotice"
-            app:destination="@id/adminCreateNoticeFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/adminCreateNoticeFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminCreateNoticeFragment"
-        android:label="Create Notice"
-        tools:layout="@layout/fragment_admin_create_notice" />
+        android:name="com.mgbheights.android.ui.admin.AdminComplaintDetailFragment" />
 
     <fragment
         android:id="@+id/adminBillsFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminBillsFragment"
-        android:label="Bills"
-        tools:layout="@layout/fragment_admin_bills">
-        <action
-            android:id="@+id/action_adminBills_to_adminCreateBill"
-            app:destination="@id/adminCreateBillFragment" />
+        android:name="com.mgbheights.android.ui.admin.AdminBillsFragment">
+        <action android:id="@+id/action_admin_bills_to_create" app:destination="@id/adminCreateBillFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/adminCreateBillFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminCreateBillFragment"
-        android:label="Create Bill"
-        tools:layout="@layout/fragment_admin_create_bill" />
+        android:name="com.mgbheights.android.ui.admin.AdminCreateBillFragment" />
+
+    <fragment
+        android:id="@+id/adminNoticesFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminNoticesFragment">
+        <action android:id="@+id/action_admin_notices_to_create" app:destination="@id/adminCreateNoticeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminCreateNoticeFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminCreateNoticeFragment" />
 
     <fragment
         android:id="@+id/adminVisitorsLogFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminVisitorsLogFragment"
-        android:label="Visitors Log"
-        tools:layout="@layout/fragment_admin_visitors_log" />
+        android:name="com.mgbheights.android.ui.admin.AdminVisitorsLogFragment" />
+
+    <fragment
+        android:id="@+id/adminVisitorsFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminVisitorsFragment" />
 
     <fragment
         android:id="@+id/adminMediaFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminMediaFragment"
-        android:label="Media"
-        tools:layout="@layout/fragment_admin_media" />
+        android:name="com.mgbheights.android.ui.admin.AdminMediaFragment" />
+
+    <fragment
+        android:id="@+id/adminShopFragment"
+        android:name="com.mgbheights.android.ui.admin.AdminShopFragment" />
 
     <fragment
         android:id="@+id/adminProfileFragment"
-        android:name="com.mgbheights.android.ui.admin.AdminProfileFragment"
-        android:label="Profile"
-        tools:layout="@layout/fragment_admin_profile" />
+        android:name="com.mgbheights.android.ui.admin.AdminProfileFragment">
+        <action android:id="@+id/action_admin_profile_to_user_management" app:destination="@id/adminUserManagementFragment" />
+    </fragment>
 
 </navigation>
+

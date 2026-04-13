@@ -1,17 +1,17 @@
 package com.mgbheights.android.ui.auth
 
-import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
+import com.mgbheights.shared.domain.model.ApprovalStatus
 import com.mgbheights.shared.domain.model.User
 import com.mgbheights.shared.domain.model.UserRole
+import com.mgbheights.shared.domain.repository.AuthRepository
+import com.mgbheights.shared.domain.repository.UserRepository
 import com.mgbheights.shared.domain.usecase.auth.GetCurrentUserUseCase
 import com.mgbheights.shared.domain.usecase.auth.LoginWithEmailUseCase
 import com.mgbheights.shared.domain.usecase.auth.SignUpWithEmailUseCase
-import com.mgbheights.shared.domain.repository.UserRepository
 import com.mgbheights.shared.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -20,12 +20,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val application: Application,
     private val loginWithEmailUseCase: LoginWithEmailUseCase,
     private val signUpWithEmailUseCase: SignUpWithEmailUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val userRepository: UserRepository,
-    private val firebaseAuth: FirebaseAuth
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _loginState = MutableLiveData<Resource<User>>()
@@ -44,15 +43,11 @@ class AuthViewModel @Inject constructor(
     var selectedRole: UserRole = UserRole.RESIDENT
     var signUpEmail: String = ""
     var signUpPassword: String = ""
-
-    // Sign-up form data (stored for use after email verification)
     var signUpName: String = ""
     var signUpPhone: String = ""
     var signUpFlatNumber: String = ""
     var signUpTowerBlock: String = ""
     var isFromSignUp: Boolean = false
-
-    // Photo data (Base64 data URIs stored in Firestore)
     var signUpProfilePhoto: String = ""
     var signUpIdProof: String = ""
 
@@ -62,12 +57,11 @@ class AuthViewModel @Inject constructor(
 
     private fun checkLoginStatus() {
         viewModelScope.launch {
-            val currentFirebaseUser = firebaseAuth.currentUser
-            if (currentFirebaseUser != null) {
-                Timber.d("User already logged in: ${currentFirebaseUser.uid}")
+            val result = getCurrentUserUseCase()
+            if (result.isSuccess) {
+                Timber.d("User already logged in: ${result.getOrNull()?.id}")
                 _isLoggedIn.value = true
-                _currentUser.value = Resource.Loading
-                _currentUser.value = getCurrentUserUseCase()
+                _currentUser.value = result
             } else {
                 _isLoggedIn.value = false
             }
@@ -95,18 +89,8 @@ class AuthViewModel @Inject constructor(
                 _isLoggedIn.value = true
                 signUpEmail = email
                 signUpPassword = password
-                sendEmailVerification()
             }
         }
-    }
-
-    fun sendEmailVerification() {
-        val user = firebaseAuth.currentUser ?: return
-        user.sendEmailVerification()
-    }
-
-    fun isEmailVerified(): Boolean {
-        return firebaseAuth.currentUser?.isEmailVerified == true
     }
 
     fun completeSignUpProfile(name: String, flatNumber: String, towerBlock: String) {
@@ -125,7 +109,7 @@ class AuthViewModel @Inject constructor(
                     profilePhotoUrl = signUpProfilePhoto,
                     idProofUrl = signUpIdProof,
                     isProfileComplete = true,
-                    isApproved = selectedRole == UserRole.ADMIN,
+                    approvalStatus = if (selectedRole == UserRole.ADMIN) ApprovalStatus.APPROVED else ApprovalStatus.PENDING,
                     updatedAt = System.currentTimeMillis()
                 )
                 val updateResult = userRepository.updateUser(updated)
@@ -149,11 +133,12 @@ class AuthViewModel @Inject constructor(
     }
 
     fun signOut() {
-        firebaseAuth.signOut()
-        _isLoggedIn.value = false
-        _currentUser.value = Resource.error("Signed out")
-        isFromSignUp = false
-        // Reset role to default for next user
-        selectedRole = UserRole.RESIDENT
+        viewModelScope.launch {
+            authRepository.signOut()
+            _isLoggedIn.value = false
+            _currentUser.value = Resource.error("Signed out")
+            isFromSignUp = false
+            selectedRole = UserRole.RESIDENT
+        }
     }
 }
